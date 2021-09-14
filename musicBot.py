@@ -17,18 +17,36 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from configparser import ConfigParser
 
+# Parse Config ini
 config_object = ConfigParser()
 config_object.read("config.ini")
 bot_settings = config_object["BOT_SETTINGS"]
 bot_prefix = bot_settings["prefix"]
+test_song = bot_settings["test_song"]
 
+# Create member vars
+song_queue = []
+
+# Create Bot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=bot_prefix, intents=intents)
 
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+}
 
-TEMP_LINK = "https://www.youtube.com/watch?v=zHtcvQAI000"
+ffmpeg_options = {
+        'options': '-vn',
+        "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
+    }
+
 
 @bot.event
 async def on_ready():
@@ -57,31 +75,12 @@ async def play_(ctx):
 
     await ctx.message.delete()
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
-
-    ffmpeg_options = {
-        'options': '-vn',
-        "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
-    }
-
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        song_info = ydl.extract_info(TEMP_LINK, download=False)
+        song_info = ydl.extract_info(test_song, download=False)
 
-    # print(song_info)
+    song_queue.append(song_info)
 
-    vc.play(discord.FFmpegPCMAudio(song_info["formats"][0]["url"], **ffmpeg_options))
-    vc.source = discord.PCMVolumeTransformer(vc.source)
-    vc.volume = 1
-
-    while vc.is_playing():
-        await asyncio.sleep(1)
+    await play_music_(ctx, vc)
 
 
 @bot.command(name= 'disconnect', help= 'Disconnects from voice')
@@ -93,5 +92,24 @@ async def disconnect_(ctx):
         vc = None
 
     await ctx.message.delete()
+
+
+# -------------- Functions ------------- #
+async def play_music_(ctx, vc):
+    while song_queue:
+        try:
+            if vc.is_connected() and not vc.is_playing():
+                # Create FFmpeg audio stream, attach to voice client
+                vc.play(discord.FFmpegPCMAudio(song_queue[0]["formats"][0]["url"], **ffmpeg_options))
+                vc.source = discord.PCMVolumeTransformer(vc.source)
+                vc.volume = 1
+        except discord.errors.ClientException:
+            print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
+            break
+
+        song_queue.pop(0)
+
+        while vc.is_playing():
+            await asyncio.sleep(1)
 
 bot.run(TOKEN)
