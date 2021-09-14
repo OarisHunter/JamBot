@@ -39,4 +39,31 @@ async def on_ready():
     except discord.DiscordException:
         print("on_ready event failed.")
 
+# -------------- Commands ------------- #
+
+
+@bot.command(name= 'play', help= 'Connects bot voice')
+async def play_(ctx):
+    if ctx.author.voice is not None:
+        try:
+            vc = await ctx.author.voice.channel.connect()
+        except discord.DiscordException:
+            vc = ctx.guild.voice_client
+    else:
+        await ctx.message.delete()
+        return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+
+    await ctx.message.delete()
+
+
+@bot.command(name= 'disconnect', help= 'Disconnects from voice')
+async def disconnect_(ctx):
+    vc = ctx.guild.voice_client
+
+    if vc.is_connected():
+        await vc.disconnect()
+        vc = None
+
+    await ctx.message.delete()
+
 bot.run(TOKEN)
