@@ -52,8 +52,8 @@ async def on_ready():
 
 
 @bot.command(name= 'play', help= 'Connects Bot to Voice')
-async def play_(ctx, link):
-    await ctx.message.delete()
+async def play_(ctx, *link):
+    await ctx.message.delete(delay=5)
 
     # Check that author is in a voice channel
     if ctx.author.voice is not None:
@@ -67,10 +67,20 @@ async def play_(ctx, link):
         print(f"Play: Bot not connected to {ctx.guild.name}")
         return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
+    print(type(link))
+
+    if type(link) == tuple:
+        temp = ""
+        for i in link:
+            temp += " " + i
+        link = temp
+
+    print(link)
+
     # Call Youtube_DL to fetch song info
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         # DEBUG COMMAND
-        if link == "DEBUG":
+        if link == " DEBUG":
             song_info = ydl.extract_info(test_song, download=False)
         else:
             song_info = ydl.extract_info(link, download=False)
@@ -88,11 +98,13 @@ async def play_(ctx, link):
 
     # If link was a playlist, loop through list of songs and add them to the queue
     if type(song_info) == list:
-        await ctx.channel.send("**Added Playlist to Queue**", delete_after=20)
+        message = ""
         for i in song_info:
             title = i['title']
             url = i["formats"][0]["url"]
             song_queue.append((title, url))
+            message += '\n' + title
+        await ctx.channel.send(f"**Added to the Queue** \n{message}", delete_after=20)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
         title = song_info['title']
@@ -108,7 +120,7 @@ async def play_(ctx, link):
 
 @bot.command(name= 'skip', help= 'Skips to next Song in Queue')
 async def skip_(ctx):
-    await ctx.message.delete()
+    await ctx.message.delete(delay=5)
 
     vc = ctx.guild.voice_client  # Get current voice client
     if vc is None:
@@ -138,7 +150,7 @@ async def skip_(ctx):
 
 @bot.command(name= 'clear', help= 'Clears the Song Queue')
 async def clear_(ctx):
-    await ctx.message.delete()
+    await ctx.message.delete(delay=5)
 
     # Empty the queue
     global song_queue
@@ -150,7 +162,7 @@ async def clear_(ctx):
 
 @bot.command(name= 'queue', help= 'Displays the Queue')
 async def queue_(ctx):
-    await ctx.message.delete()
+    await ctx.message.delete(delay=5)
 
     if song_queue:
         # Build message to display
@@ -172,7 +184,7 @@ async def queue_(ctx):
 @bot.command(name= 'np', help= 'Displays the currently playing song')
 async def nowPlaying_(ctx):
     try:
-        await ctx.message.delete()
+        await ctx.message.delete(delay=5)
     except discord.DiscordException:
         pass
 
