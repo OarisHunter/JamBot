@@ -51,7 +51,7 @@ async def on_ready():
 # -------------- Commands ------------- #
 
 
-@bot.command(name= 'play', help= 'Connects bot voice')
+@bot.command(name= 'play', help= 'Connects Bot to Voice')
 async def play_(ctx, link):
     await ctx.message.delete()
 
@@ -74,6 +74,7 @@ async def play_(ctx, link):
             song_info = ydl.extract_info(test_song, download=False)
         else:
             song_info = ydl.extract_info(link, download=False)
+    # print(song_info)
 
     title = song_info['title']
     url = song_info["formats"][0]["url"]
@@ -88,7 +89,7 @@ async def play_(ctx, link):
         await play_music_(ctx, vc)
 
 
-@bot.command(name= 'skip', help= 'Skips to next song in queue')
+@bot.command(name= 'skip', help= 'Skips to next Song in Queue')
 async def skip_(ctx):
     await ctx.message.delete()
 
@@ -115,7 +116,37 @@ async def skip_(ctx):
         await ctx.channel.send(f"Now Playing {song_queue[0][0]}", delete_after=20)
 
 
-@bot.command(name= 'disconnect', help= 'Disconnects from voice')
+@bot.command(name= 'clear', help= 'Clears the Song Queue')
+async def clear_(ctx):
+    await ctx.message.delete()
+
+    # Empty the queue
+    global song_queue
+    song_queue = []
+
+    # Send response
+    await ctx.channel.send("Cleared the Queue!", delete_after=20)
+
+
+@bot.command(name= 'queue', help= 'Displays the Queue')
+async def queue_(ctx):
+    await ctx.message.delete()
+
+    # Build message to display
+    queue_message = "**Queue:**```"
+    for count, val in enumerate(song_queue):
+        if count < 10:
+            queue_message += f"0{count}"
+        else:
+            queue_message += f"{count}"
+        queue_message += f" | {val[0]}\n"
+    queue_message += "```"
+
+    # Send response
+    await ctx.channel.send(queue_message, delete_after=60)
+
+
+@bot.command(name= 'disconnect', help= 'Disconnects from Voice')
 async def disconnect_(ctx):
     vc = ctx.guild.voice_client
 
@@ -148,6 +179,7 @@ async def play_music_(ctx, vc):
         while vc.is_playing():
             await asyncio.sleep(1)
 
-        song_queue.pop(0)
+        if song_queue:
+            song_queue.pop(0)
 
 bot.run(TOKEN)
