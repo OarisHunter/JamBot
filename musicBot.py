@@ -3,7 +3,7 @@
 """
 Music Bot
 
-    Plays youtube linked videos in discord voice channel
+    Plays YouTube linked videos in discord voice channel
 
 @author: Pierce Thompson
 """
