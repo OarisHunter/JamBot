@@ -64,6 +64,7 @@ async def play_(ctx, link):
             # Catch error if already connected
             vc = ctx.guild.voice_client
     else:
+        print(f"Play: Bot not connected to {ctx.guild.name}")
         return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
     # Call Youtube_DL to fetch song info
@@ -85,6 +86,33 @@ async def play_(ctx, link):
     # Play song if not playing a song
     if not vc.is_playing():
         await play_music_(ctx, vc)
+
+
+@bot.command(name= 'skip', help= 'Skips to next song in queue')
+async def skip_(ctx):
+    await ctx.message.delete()
+
+    vc = ctx.guild.voice_client  # Get current voice client
+    if vc is None:
+        print(f"Skip: Bot not connected to {ctx.guild.name}")
+        return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+
+    # Check that there is another song in the queue and the bot is currently playing
+    if len(song_queue) > 1 and vc.is_playing():
+        # Pop currently playing off queue
+        song_queue.pop(0)
+
+        # Update Voice Client source
+        try:
+            vc.source = discord.FFmpegPCMAudio(song_queue[0][1], **ffmpeg_opts)
+            vc.source = discord.PCMVolumeTransformer(vc.source)
+            vc.volume = 1
+        except discord.errors.ClientException:
+            print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
+
+        # Display now playing message
+        print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
+        await ctx.channel.send(f"Now Playing {song_queue[0][0]}", delete_after=20)
 
 
 @bot.command(name= 'disconnect', help= 'Disconnects from voice')
