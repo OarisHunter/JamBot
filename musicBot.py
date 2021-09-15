@@ -88,7 +88,7 @@ async def play_(ctx, link):
 
     # If link was a playlist, loop through list of songs and add them to the queue
     if type(song_info) == list:
-        await ctx.channel.send("Added Playlist to Queue", delete_after=20)
+        await ctx.channel.send("**Added Playlist to Queue**", delete_after=20)
         for i in song_info:
             title = i['title']
             url = i["formats"][0]["url"]
@@ -98,7 +98,7 @@ async def play_(ctx, link):
         title = song_info['title']
         url = song_info["formats"][0]["url"]
         if song_queue:
-            await ctx.channel.send(f"Added {title} to Queue", delete_after=20)
+            await ctx.channel.send(f"**Added to the Queue**\n\n{title}", delete_after=20)
         song_queue.append((title, url))
 
     # Play song if not playing a song
@@ -129,8 +129,7 @@ async def skip_(ctx):
             print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
 
         # Display now playing message
-        print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
-        await ctx.channel.send(f"Now Playing {song_queue[0][0]}", delete_after=20)
+        await nowPlaying_(ctx)
 
 
 @bot.command(name= 'clear', help= 'Clears the Song Queue')
@@ -142,25 +141,44 @@ async def clear_(ctx):
     song_queue = []
 
     # Send response
-    await ctx.channel.send("Cleared the Queue!", delete_after=20)
+    await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
 
 
 @bot.command(name= 'queue', help= 'Displays the Queue')
 async def queue_(ctx):
     await ctx.message.delete()
 
-    # Build message to display
-    queue_message = "**Queue:**```"
-    for count, val in enumerate(song_queue):
-        if count < 10:
-            queue_message += f"0{count}"
-        else:
-            queue_message += f"{count}"
-        queue_message += f" | {val[0]}\n"
-    queue_message += "```"
+    if song_queue:
+        # Build message to display
+        queue_message = "**Queue:**\n\n```"
+        for count, val in enumerate(song_queue):
+            if count < 10:
+                queue_message += f"0{count}"
+            else:
+                queue_message += f"{count}"
+            queue_message += f" | {val[0]}\n"
+        queue_message += "```"
 
-    # Send response
-    await ctx.channel.send(queue_message, delete_after=60)
+        # Send response
+        await ctx.channel.send(queue_message, delete_after=60)
+    else:
+        await ctx.channel.send("**Queue is empty!**", delete_after=10)
+
+
+@bot.command(name= 'np', help= 'Displays the currently playing song')
+async def nowPlaying_(ctx):
+    try:
+        await ctx.message.delete()
+    except discord.DiscordException:
+        pass
+
+    vc = ctx.message.guild.voice_client
+    if vc and vc.is_playing():
+        print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
+        await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
+    else:
+        print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
+        await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
 
 @bot.command(name= 'disconnect', help= 'Disconnects from Voice')
@@ -186,8 +204,7 @@ async def play_music_(ctx, vc):
                 vc.volume = 1
 
                 # Display now playing message
-                print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
-                await ctx.channel.send(f"Now Playing {song_queue[0][0]}", delete_after=20)
+                await nowPlaying_(ctx)
 
         except discord.errors.ClientException:
             print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
