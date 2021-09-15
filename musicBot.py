@@ -129,7 +129,11 @@ async def skip_(ctx):
             print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
 
         # Display now playing message
+        await ctx.channel.send("**Skipped a Song!**", delete_after=10)
         await nowPlaying_(ctx)
+    else:
+        vc.stop()
+        await ctx.channel.send("**Skipped a Song!**", delete_after=10)
 
 
 @bot.command(name= 'clear', help= 'Clears the Song Queue')
@@ -152,10 +156,10 @@ async def queue_(ctx):
         # Build message to display
         queue_message = "**Queue:**\n\n```"
         for count, val in enumerate(song_queue):
-            if count < 10:
-                queue_message += f"0{count}"
+            if count < 9:
+                queue_message += f"0{count + 1}"
             else:
-                queue_message += f"{count}"
+                queue_message += f"{count + 1}"
             queue_message += f" | {val[0]}\n"
         queue_message += "```"
 
