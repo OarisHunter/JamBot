@@ -76,13 +76,30 @@ async def play_(ctx, link):
             song_info = ydl.extract_info(link, download=False)
     # print(song_info)
 
-    title = song_info['title']
-    url = song_info["formats"][0]["url"]
+    # Detect if link is a playlist
+    try:
+        if song_info['_type'] == 'playlist':
+            # If link is a playlist set song_info to a list of songs
+            song_info = song_info['entries']
+        else:
+            print(f"Link from {ctx.guild.name} is unsupported")
+    except KeyError:
+        pass
 
-    # Add song to queue
-    if song_queue:
-        await ctx.channel.send(f"{title} added to Queue", delete_after=20)
-    song_queue.append((title, url))
+    # If link was a playlist, loop through list of songs and add them to the queue
+    if type(song_info) == list:
+        await ctx.channel.send("Added Playlist to Queue", delete_after=20)
+        for i in song_info:
+            title = i['title']
+            url = i["formats"][0]["url"]
+            song_queue.append((title, url))
+    # Otherwise add the single song to the queue, display message if song was added to the queue
+    else:
+        title = song_info['title']
+        url = song_info["formats"][0]["url"]
+        if song_queue:
+            await ctx.channel.send(f"Added {title} to Queue", delete_after=20)
+        song_queue.append((title, url))
 
     # Play song if not playing a song
     if not vc.is_playing():
