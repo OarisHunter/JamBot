@@ -18,23 +18,28 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from configparser import ConfigParser
 
-# Parse Config ini
-config_object = ConfigParser()
-config_object.read("config.ini")
-bot_settings = config_object["BOT_SETTINGS"]
-bot_prefix = bot_settings["prefix"]
-test_song = bot_settings["test_song"]
-ydl_opts = ast.literal_eval(bot_settings["ydl_opts"])
-ffmpeg_opts = ast.literal_eval(bot_settings["ffmpeg_opts"])
-
 # Create member vars
+default_prefix = "~"
 song_queue = []
+guild_ids = {}
+test_song = ""
+ydl_opts = {}
+ffmpeg_opts = {}
+
+
+# Get prefixes from config.ini
+def get_prefix(client, message):
+    config_object = ConfigParser()
+    config_object.read("config.ini")
+    bot_prefixes = config_object["PREFIXES"]
+    return bot_prefixes[str(message.guild.id)]
+
 
 # Create Bot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=bot_prefix, intents=intents)
+bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 
 
 @bot.event
@@ -42,15 +47,17 @@ async def on_ready():
     try:
         print("Music Bot is Ready!")
 
+        read_config()
+        print("Read bot settings from Config!")
+
         for guild in bot.guilds:
             print(f"\t{bot.user.name} has connected to {guild.owner.name}'s server | {guild.name} |")
 
     except discord.DiscordException:
         print("on_ready event failed.")
 
+
 # -------------- Commands ------------- #
-
-
 @bot.command(name= 'play', help= 'Connects Bot to Voice')
 async def play_(ctx, *link):
     await ctx.message.delete(delay=5)
@@ -73,12 +80,12 @@ async def play_(ctx, *link):
         temp = ""
         for i in link:
             temp += i + " "
-        link = temp
+        link = temp.strip()
 
     # Call Youtube_DL to fetch song info
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         # DEBUG COMMAND
-        if link == " DEBUG":
+        if link == "DEBUG":
             song_info = ydl.extract_info(test_song, download=False)
         else:
             song_info = ydl.extract_info(link, download=False)
@@ -207,7 +214,52 @@ async def disconnect_(ctx):
     await ctx.message.delete()
 
 
+@bot.command(name= 'prefix', help= 'Changes prefix for this server')
+async def prefix_(ctx):
+    pass
+
+
+# --------------- Events -------------- #
+# Removes guild id and stored prefix from config.ini
+@bot.event
+async def on_guild_join(guild):
+    config_object = ConfigParser()
+    config_object.read("config.ini")
+    bot_prefixes = config_object["PREFIXES"]
+    bot_prefixes[str(guild.id)] = default_prefix
+
+    print(f"{bot.user.name} added to {guild.name}!")
+
+    with open('config.ini', 'w') as conf:
+        config_object.write(conf)
+
+
+# Removes guild id and stored prefix from config.ini
+@bot.event
+async def on_guild_remove(guild):
+    config_object = ConfigParser()
+    config_object.read("config.ini")
+    bot_prefixes = config_object["PREFIXES"]
+    bot_prefixes.pop(str(guild.id))
+
+    print(f"{bot.user.name} removed from {guild.name}")
+
+    with open('config.ini', 'w') as conf:
+        config_object.write(conf)
+
+
 # -------------- Functions ------------- #
+def read_config():
+    global test_song, ydl_opts, ffmpeg_opts
+
+    config_object = ConfigParser()
+    config_object.read("config.ini")
+    bot_settings = config_object["BOT_SETTINGS"]
+    test_song = bot_settings["test_song"]
+    ydl_opts = ast.literal_eval(bot_settings["ydl_opts"])
+    ffmpeg_opts = ast.literal_eval(bot_settings["ffmpeg_opts"])
+
+
 async def play_music_(ctx, vc):
     while song_queue:
         try:
