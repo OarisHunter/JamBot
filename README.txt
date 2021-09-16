@@ -37,4 +37,4 @@ TO-DO LIST
     - Shuffle queue.
     - Pause/Resume.
     - Seek.
-
+    - Custom help command.
