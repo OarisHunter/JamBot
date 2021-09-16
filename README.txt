@@ -15,15 +15,14 @@ FEATURES
     - Clear Queue.
     - Search YouTube for a song.
     - Play YouTube Playlists.
-    - Server dependant, changeable prefixes.
+    - Server independant, changeable prefixes.
+    - Server independant song queues.
 
 ------------------------------------------------------------------------------------------------------------------------
 
 KNOWN ISSUES
 
-    - Skipping a song with nothing following it in the queue prevents the bot
-        from playing music until it is reconnected.
-    - Queue implementation will not work across different discord servers.
+    NONE :)
 
 ------------------------------------------------------------------------------------------------------------------------
 

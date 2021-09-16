@@ -20,14 +20,15 @@ from configparser import ConfigParser
 
 # Create member vars
 default_prefix = "~"
-song_queue = []
-guild_ids = {}
+server_queues = {}
 test_song = ""
 ydl_opts = {}
 ffmpeg_opts = {}
 
 
-# Get prefixes from config.ini
+"""
+    Get prefixes from config.ini
+"""
 def get_prefix(client, message):
     config_object = ConfigParser()
     config_object.read("config.ini")
@@ -41,17 +42,21 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 
-
+"""
+    Called when bot start-up has finished
+"""
 @bot.event
 async def on_ready():
     try:
+        # Start-up messages
         print("Music Bot is Ready!")
-
         read_config()
         print("Read bot settings from Config!")
-
         for guild in bot.guilds:
             print(f"\t{bot.user.name} has connected to {guild.owner.name}'s server | {guild.name} |")
+
+        # Generate song queues
+        create_server_queue()
 
     except discord.DiscordException:
         print("on_ready event failed.")
@@ -89,7 +94,6 @@ async def play_(ctx, *link):
             song_info = ydl.extract_info(test_song, download=False)
         else:
             song_info = ydl.extract_info(link, download=False)
-    # print(song_info)
 
     # Detect if link is a playlist
     try:
@@ -107,16 +111,16 @@ async def play_(ctx, *link):
         for i in song_info:
             title = i['title']
             url = i["formats"][0]["url"]
-            song_queue.append((title, url))
+            add_queue(ctx.guild.id, (title, url))
             message += '\n' + title
         await ctx.channel.send(f"**Added to the Queue** \n{message}", delete_after=20)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
         title = song_info['title']
         url = song_info["formats"][0]["url"]
-        if song_queue:
+        if get_queue(ctx.guild.id):
             await ctx.channel.send(f"**Added to the Queue**\n\n{title}", delete_after=20)
-        song_queue.append((title, url))
+        add_queue(ctx.guild.id, (title, url))
 
     # Play song if not playing a song
     if not vc.is_playing():
@@ -133,6 +137,7 @@ async def skip_(ctx):
         return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
     # Check that there is another song in the queue and the bot is currently playing
+    song_queue = get_queue(ctx.guild.id)
     if len(song_queue) > 1 and vc.is_playing():
         # Pop currently playing off queue
         song_queue.pop(0)
@@ -158,8 +163,7 @@ async def clear_(ctx):
     await ctx.message.delete(delay=5)
 
     # Empty the queue
-    global song_queue
-    song_queue = []
+    get_queue(ctx.guild.id).clear()
 
     # Send response
     await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
@@ -169,6 +173,7 @@ async def clear_(ctx):
 async def queue_(ctx):
     await ctx.message.delete(delay=5)
 
+    song_queue = get_queue(ctx.guild.id)
     if song_queue:
         # Build message to display
         queue_message = "**Queue:**\n\n```"
@@ -194,6 +199,7 @@ async def nowPlaying_(ctx):
         pass
 
     vc = ctx.message.guild.voice_client
+    song_queue = get_queue(ctx.guild.id)
     if vc and vc.is_playing():
         print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
         await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
@@ -235,7 +241,9 @@ async def prefix_(ctx, *prefix):
 
 
 # --------------- Events -------------- #
-# Removes guild id and stored prefix from config.ini
+"""
+    Removes guild id and stored prefix from config.ini
+"""
 @bot.event
 async def on_guild_join(guild):
     # Parse Config, get server prefixes
@@ -246,6 +254,9 @@ async def on_guild_join(guild):
     # Set prefix of new server to default prefix
     bot_prefixes[str(guild.id)] = default_prefix
 
+    # Update server queues
+    create_server_queue()
+
     print(f"{bot.user.name} added to {guild.name}!")
 
     # Update config file
@@ -253,7 +264,9 @@ async def on_guild_join(guild):
         config_object.write(conf)
 
 
-# Removes guild id and stored prefix from config.ini
+"""
+    Removes guild id and stored prefix from config.ini
+"""
 @bot.event
 async def on_guild_remove(guild):
     # Parse Config, get server prefixes
@@ -264,6 +277,9 @@ async def on_guild_remove(guild):
     # remove server's prefix from config
     bot_prefixes.pop(str(guild.id))
 
+    # Update server queues
+    create_server_queue()
+
     print(f"{bot.user.name} removed from {guild.name}")
 
     # Update config file
@@ -272,6 +288,37 @@ async def on_guild_remove(guild):
 
 
 # -------------- Functions ------------- #
+"""
+    Generate song queues for all servers
+        Non-Queue destructive
+"""
+def create_server_queue():
+    # Loop through guilds bot is in
+    for guild in bot.guilds:
+        # Get guild id
+        g_id = str(guild.id)
+        # Add guild id to queue dict
+        if g_id not in server_queues:
+            server_queues[g_id] = []
+
+
+"""
+    Get Server Queue from Queue Dict
+"""
+def get_queue(guild_id):
+    return server_queues[str(guild_id)]
+
+
+"""
+    Add song to Server Queue in Queue Dict
+"""
+def add_queue(guild_id, song_tuple):
+    server_queues[str(guild_id)].append(song_tuple)
+
+
+"""
+    Get server options from config.ini
+"""
 def read_config():
     global test_song, ydl_opts, ffmpeg_opts
 
@@ -283,7 +330,11 @@ def read_config():
     ffmpeg_opts = ast.literal_eval(bot_settings["ffmpeg_opts"])
 
 
+"""
+    Play songs in server's queue
+"""
 async def play_music_(ctx, vc):
+    song_queue = get_queue(ctx.guild.id)
     while song_queue:
         try:
             if vc.is_connected() and not vc.is_playing():
