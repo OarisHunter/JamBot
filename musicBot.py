@@ -215,21 +215,40 @@ async def disconnect_(ctx):
 
 
 @bot.command(name= 'prefix', help= 'Changes prefix for this server')
-async def prefix_(ctx):
-    pass
+async def prefix_(ctx, *prefix):
+    # Parse Config, get server prefixes
+    config_object = ConfigParser()
+    config_object.read("config.ini")
+    bot_prefixes = config_object["PREFIXES"]
+
+    # If a prefix was given, change the prefix, otherwise display the current prefix
+    if prefix and len(prefix) < 2:
+        bot_prefixes[str(ctx.guild.id)] = str(''.join(prefix))
+
+        # Update config file
+        with open('config.ini', 'w') as conf:
+            config_object.write(conf)
+
+        await ctx.channel.send(f'Prefix for {ctx.guild.name} has been changed to: {bot_prefixes[str(ctx.guild.id)]}', delete_after=10)
+    else:
+        await ctx.channel.send(f'Prefix for {ctx.guild.name} is: {bot_prefixes[str(ctx.guild.id)]}', delete_after=10)
 
 
 # --------------- Events -------------- #
 # Removes guild id and stored prefix from config.ini
 @bot.event
 async def on_guild_join(guild):
+    # Parse Config, get server prefixes
     config_object = ConfigParser()
     config_object.read("config.ini")
     bot_prefixes = config_object["PREFIXES"]
+
+    # Set prefix of new server to default prefix
     bot_prefixes[str(guild.id)] = default_prefix
 
     print(f"{bot.user.name} added to {guild.name}!")
 
+    # Update config file
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
 
@@ -237,13 +256,17 @@ async def on_guild_join(guild):
 # Removes guild id and stored prefix from config.ini
 @bot.event
 async def on_guild_remove(guild):
+    # Parse Config, get server prefixes
     config_object = ConfigParser()
     config_object.read("config.ini")
     bot_prefixes = config_object["PREFIXES"]
+
+    # remove server's prefix from config
     bot_prefixes.pop(str(guild.id))
 
     print(f"{bot.user.name} removed from {guild.name}")
 
+    # Update config file
     with open('config.ini', 'w') as conf:
         config_object.write(conf)
 

@@ -15,6 +15,7 @@ FEATURES
     - Clear Queue.
     - Search YouTube for a song.
     - Play YouTube Playlists.
+    - Server dependant, changeable prefixes.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -29,7 +30,6 @@ KNOWN ISSUES
 TO-DO LIST
     (Not ordered by priority)
 
-    - Add command to change prefix and update it in config file.
     - Update "Now Playing" & "Added to Queue" messages with embeds.
     - Tune message deletes to keep channels clear of commands, but keep a history of what's played.
     - Refactor bot for readability and efficiency.
@@ -38,3 +38,4 @@ TO-DO LIST
     - Pause/Resume.
     - Seek.
     - Custom help command.
+    - Loop.
