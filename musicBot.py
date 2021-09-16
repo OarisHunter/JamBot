@@ -63,6 +63,13 @@ async def on_ready():
 
 
 # -------------- Commands ------------- #
+"""
+    Command to connect to voice
+        plays song 
+            from link
+            from search
+            from playlist link
+"""
 @bot.command(name= 'play', help= 'Connects Bot to Voice')
 async def play_(ctx, *link):
     await ctx.message.delete(delay=5)
@@ -82,10 +89,7 @@ async def play_(ctx, *link):
     # Convert command args to string
     # allows for multi word song searches
     if type(link) == tuple:
-        temp = ""
-        for i in link:
-            temp += i + " "
-        link = temp.strip()
+        link = tuple_to_string(link)
 
     # Call Youtube_DL to fetch song info
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -105,28 +109,17 @@ async def play_(ctx, *link):
     except KeyError:
         pass
 
-    # If link was a playlist, loop through list of songs and add them to the queue
-    if type(song_info) == list:
-        message = ""
-        for i in song_info:
-            title = i['title']
-            url = i["formats"][0]["url"]
-            add_queue(ctx.guild.id, (title, url))
-            message += '\n' + title
-        await ctx.channel.send(f"**Added to the Queue** \n{message}", delete_after=20)
-    # Otherwise add the single song to the queue, display message if song was added to the queue
-    else:
-        title = song_info['title']
-        url = song_info["formats"][0]["url"]
-        if get_queue(ctx.guild.id):
-            await ctx.channel.send(f"**Added to the Queue**\n\n{title}", delete_after=20)
-        add_queue(ctx.guild.id, (title, url))
+    # Add song(s) to queue from song info
+    await add_song_to_queue(ctx, song_info)
 
     # Play song if not playing a song
     if not vc.is_playing():
         await play_music_(ctx, vc)
 
 
+"""
+    Command to skip currently playing song
+"""
 @bot.command(name= 'skip', help= 'Skips to next Song in Queue')
 async def skip_(ctx):
     await ctx.message.delete(delay=5)
@@ -152,12 +145,15 @@ async def skip_(ctx):
 
         # Display now playing message
         await ctx.channel.send("**Skipped a Song!**", delete_after=10)
-        await nowPlaying_(ctx)
+        await ctx.invoke(bot.get_command('np'))
     else:
         vc.stop()
         await ctx.channel.send("**Skipped a Song!**", delete_after=10)
 
 
+"""
+    Command to clear server's Queue
+"""
 @bot.command(name= 'clear', help= 'Clears the Song Queue')
 async def clear_(ctx):
     await ctx.message.delete(delay=5)
@@ -169,6 +165,9 @@ async def clear_(ctx):
     await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
 
 
+"""
+    Command to display songs in server's Queue
+"""
 @bot.command(name= 'queue', help= 'Displays the Queue')
 async def queue_(ctx):
     await ctx.message.delete(delay=5)
@@ -191,6 +190,9 @@ async def queue_(ctx):
         await ctx.channel.send("**Queue is empty!**", delete_after=10)
 
 
+"""
+    Command to display "Now Playing" message
+"""
 @bot.command(name= 'np', help= 'Displays the currently playing song')
 async def nowPlaying_(ctx):
     try:
@@ -208,6 +210,9 @@ async def nowPlaying_(ctx):
         await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
 
+"""
+    Command to disconnect bot from voice
+"""
 @bot.command(name= 'disconnect', help= 'Disconnects from Voice')
 async def disconnect_(ctx):
     vc = ctx.guild.voice_client
@@ -215,11 +220,13 @@ async def disconnect_(ctx):
     # Check that the bot is connected to voice
     if vc.is_connected():
         await vc.disconnect()
-        vc = None
 
     await ctx.message.delete()
 
 
+"""
+    Command to change/display server defined prefix
+"""
 @bot.command(name= 'prefix', help= 'Changes prefix for this server')
 async def prefix_(ctx, *prefix):
     # Parse Config, get server prefixes
@@ -289,6 +296,16 @@ async def on_guild_remove(guild):
 
 # -------------- Functions ------------- #
 """
+    Converts an indeterminate length tuple to a string
+"""
+def tuple_to_string(tup):
+    temp = ""
+    for i in tup:
+        temp += i + " "
+    return temp.strip()
+
+
+"""
     Generate song queues for all servers
         Non-Queue destructive
 """
@@ -314,6 +331,28 @@ def get_queue(guild_id):
 """
 def add_queue(guild_id, song_tuple):
     server_queues[str(guild_id)].append(song_tuple)
+
+
+"""
+    Add song(s) to queue
+"""
+async def add_song_to_queue(ctx, song_info):
+    # If link was a playlist, loop through list of songs and add them to the queue
+    if type(song_info) == list:
+        message = ""
+        for i in song_info:
+            title = i['title']
+            url = i["formats"][0]["url"]
+            add_queue(ctx.guild.id, (title, url))
+            message += '\n' + title
+        await ctx.channel.send(f"**Added to the Queue** \n{message}", delete_after=20)
+    # Otherwise add the single song to the queue, display message if song was added to the queue
+    else:
+        title = song_info['title']
+        url = song_info["formats"][0]["url"]
+        if get_queue(ctx.guild.id):
+            await ctx.channel.send(f"**Added to the Queue**\n\n{title}", delete_after=20)
+        add_queue(ctx.guild.id, (title, url))
 
 
 """
@@ -344,7 +383,7 @@ async def play_music_(ctx, vc):
                 vc.volume = 1
 
                 # Display now playing message
-                await nowPlaying_(ctx)
+                await ctx.invoke(bot.get_command('np'))
 
         except discord.errors.ClientException:
             print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
@@ -356,4 +395,5 @@ async def play_music_(ctx, vc):
         if song_queue:
             song_queue.pop(0)
 
+# Run bot
 bot.run(TOKEN)
