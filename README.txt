@@ -35,4 +35,6 @@ TO-DO LIST
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.
     - Shuffle queue.
+    - Pause/Resume.
+    - Seek.
 
