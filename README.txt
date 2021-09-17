@@ -19,6 +19,7 @@ FEATURES
     - Server independent song queues.
     - Embed messages for "Now Playing", "Added to Queue", and displaying the Queue.
     - Pause/Resume.
+    - Invite command.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -40,4 +41,3 @@ TO-DO LIST
     - Loop.
     - top 10 results on YT search.
     - Multi-skip.
-    - Invite command.
