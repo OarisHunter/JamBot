@@ -25,7 +25,7 @@ test_song = ""
 ydl_opts = {}
 ffmpeg_opts = {}
 queue_display_length = 5
-embed_theme = discord.Color.greyple()
+embed_theme = discord.Color.dark_gold()
 
 
 """
@@ -99,6 +99,7 @@ async def play_(ctx, *link):
             song_info = ydl.extract_info(test_song, download=False)
         else:
             song_info = ydl.extract_info(link, download=False)
+    # print(song_info)  # Debug call to see youtube_dl output
 
     # Detect if link is a playlist
     try:
@@ -339,6 +340,7 @@ async def on_guild_remove(guild):
 """
 def generate_np_embed(ctx, song: tuple):
     embed = discord.Embed(title="Now Playing", color=embed_theme)
+    embed.set_thumbnail(url=bot.user.avatar_url)
     embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
     embed.set_footer(text=f"Requested by {song[3]}")
     return embed
@@ -352,6 +354,7 @@ def generate_np_embed(ctx, song: tuple):
 def generate_added_queue_embed(ctx, song, flag):
     if flag == 0:
         embed = discord.Embed(title="Added to Queue", color=embed_theme)
+        embed.set_thumbnail(url=bot.user.avatar_url)
         embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
         embed.set_footer(text=f"Requested by {song[3]}")
     else:
@@ -369,6 +372,7 @@ def generate_added_queue_embed(ctx, song, flag):
 """
 def generate_display_queue(ctx, queue):
     embed = discord.Embed(title="Queue", color=embed_theme)
+    embed.set_thumbnail(url=bot.user.avatar_url)
     # Build message to display
     overflow = False
     for count, song in enumerate(queue):
@@ -462,7 +466,7 @@ async def add_song_to_queue(ctx, song_info):
     Get server options from config.ini
 """
 def read_config():
-    global test_song, ydl_opts, ffmpeg_opts
+    global test_song, ydl_opts, ffmpeg_opts, guild_list
 
     config_object = ConfigParser()
     config_object.read("config.ini")
