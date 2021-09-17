@@ -40,3 +40,7 @@ TO-DO LIST
     - Loop.
     - top 10 results on YT search.
     - Multi-skip.
+    - Jump,  temporary skip.
+    - Remove song index from queue.
+    - Add pages to queue display.
+    - Lyrics (far future).
