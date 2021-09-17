@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from configparser import ConfigParser
 
 # Create member vars
-TEST_MODE = True
+TEST_MODE = False
 default_prefix = "~"
 server_queues = {}
 test_song = ""
