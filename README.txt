@@ -18,6 +18,7 @@ FEATURES
     - Server independent, changeable prefixes.
     - Server independent song queues.
     - Embed messages for "Now Playing", "Added to Queue", and displaying the Queue.
+    - Pause/Resume.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -34,7 +35,8 @@ TO-DO LIST
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.
     - Shuffle queue.
-    - Pause/Resume.
     - Seek.
     - Custom help command.
     - Loop.
+    - top 10 results on YT search.
+    - Multi-skip.

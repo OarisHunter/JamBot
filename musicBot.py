@@ -202,8 +202,16 @@ async def nowPlaying_(ctx):
         await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
 
+"""
+    Pauses music to be resumed later
+"""
 @bot.command(name= 'pause', help= 'Pauses currently playing song')
 async def pause_(ctx):
+    try:
+        await ctx.message.delete(delay=5)
+    except discord.DiscordException:
+        pass
+
     vc = ctx.guild.voice_client
 
     if vc.is_connected() and vc.is_playing():
@@ -216,8 +224,17 @@ async def pause_(ctx):
     else:
         await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
+
+"""
+    Resumes paused music
+"""
 @bot.command(name = 'resume', help= 'Resumes currently playing song')
 async def resume_(ctx):
+    try:
+        await ctx.message.delete(delay=5)
+    except discord.DiscordException:
+        pass
+
     vc = ctx.guild.voice_client
 
     if vc.is_connected() and vc.is_paused():
