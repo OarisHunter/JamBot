@@ -19,6 +19,7 @@ FEATURES
     - Server independent song queues.
     - Embed messages for "Now Playing", "Added to Queue", and displaying the Queue.
     - Pause/Resume.
+    - Custom Help Command.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -36,7 +37,6 @@ TO-DO LIST
     - Add support for slash commands.
     - Shuffle queue.
     - Seek.
-    - Custom help command.
     - Loop.
     - top 10 results on YT search.
     - Multi-skip.
