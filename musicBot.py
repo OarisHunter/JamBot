@@ -317,11 +317,6 @@ def generate_added_queue_embed(ctx, song, flag):
     return embed
 
 
-"""
-    Generates embed for "Queue" messages
-
-    queue: Server song queue
-"""
 def generate_display_queue(ctx, queue):
     embed = discord.Embed(title="Queue", color=embed_theme)
     # Build message to display
