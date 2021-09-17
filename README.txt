@@ -15,8 +15,9 @@ FEATURES
     - Clear Queue.
     - Search YouTube for a song.
     - Play YouTube Playlists.
-    - Server independant, changeable prefixes.
-    - Server independant song queues.
+    - Server independent, changeable prefixes.
+    - Server independent song queues.
+    - Embed messages for "Now Playing", "Added to Queue", and displaying the Queue.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -29,7 +30,6 @@ KNOWN ISSUES
 TO-DO LIST
     (Not ordered by priority)
 
-    - Update "Now Playing" & "Added to Queue" messages with embeds.
     - Tune message deletes to keep channels clear of commands, but keep a history of what's played.
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.

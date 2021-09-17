@@ -202,6 +202,34 @@ async def nowPlaying_(ctx):
         await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
 
+@bot.command(name= 'pause', help= 'Pauses currently playing song')
+async def pause_(ctx):
+    vc = ctx.guild.voice_client
+
+    if vc.is_connected() and vc.is_playing():
+        vc.pause()
+        await ctx.channel.send(f'**Music Paused!**', delete_after=10)
+    elif vc.is_connected() and vc.is_paused():
+        await ctx.channel.send(f'Already Paused', delete_after=10)
+    elif vc.is_connected() and not vc.is_playing():
+        await ctx.channel.send(f'Not Playing Anything', delete_after=10)
+    else:
+        await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
+
+@bot.command(name = 'resume', help= 'Resumes currently playing song')
+async def resume_(ctx):
+    vc = ctx.guild.voice_client
+
+    if vc.is_connected() and vc.is_paused():
+        vc.resume()
+        await ctx.channel.send(f'**Music Resumed!**', delete_after=10)
+    elif vc.is_connected() and vc.is_playing():
+        await ctx.channel.send(f'Already Playing', delete_after=10)
+    elif vc.is_connected() and not vc.is_paused():
+        await ctx.channel.send(f'Not Playing Anything', delete_after=10)
+    else:
+        await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
+
 """
     Command to disconnect bot from voice
 """
@@ -395,7 +423,8 @@ async def add_song_to_queue(ctx, song_info):
             # Add song to queue, and song list for playback and message display
             add_queue(ctx.guild.id, song)
             song_list.append(song)
-        await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1), delete_after=20)
+        if (len(song_info)) > 1:
+            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1), delete_after=20)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
         # Generate song tuple
@@ -405,7 +434,7 @@ async def add_song_to_queue(ctx, song_info):
         song = (title, url, web_page, ctx.message.author.name)
 
         # Display added to queue if queue is not empty
-        if get_queue(ctx.guild.id):
+        if len(get_queue(ctx.guild.id)) > 1:
             await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, 0), delete_after=20)
 
         # add song to queue for playback
