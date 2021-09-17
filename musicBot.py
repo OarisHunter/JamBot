@@ -24,6 +24,8 @@ server_queues = {}
 test_song = ""
 ydl_opts = {}
 ffmpeg_opts = {}
+queue_display_length = 5
+embed_theme = discord.Color.greyple()
 
 
 """
@@ -88,8 +90,7 @@ async def play_(ctx, *link):
 
     # Convert command args to string
     # allows for multi word song searches
-    if type(link) == tuple:
-        link = tuple_to_string(link)
+    link = tuple_to_string(link)
 
     # Call Youtube_DL to fetch song info
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -174,21 +175,11 @@ async def queue_(ctx):
 
     song_queue = get_queue(ctx.guild.id)
     if song_queue:
-        # Build message to display
-        queue_message = "**Queue:**\n\n```"
-        for count, val in enumerate(song_queue):
-            if count < 9:
-                queue_message += f"0{count + 1}"
-            else:
-                queue_message += f"{count + 1}"
-            queue_message += f" | {val[0]}\n"
-        queue_message += "```"
+        embed = generate_display_queue(ctx, song_queue)
 
-        # Send response
-        await ctx.channel.send(queue_message, delete_after=60)
+        await ctx.channel.send(embed=embed, delete_after=60)
     else:
         await ctx.channel.send("**Queue is empty!**", delete_after=10)
-
 
 """
     Command to display "Now Playing" message
@@ -204,7 +195,8 @@ async def nowPlaying_(ctx):
     song_queue = get_queue(ctx.guild.id)
     if vc and vc.is_playing():
         print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
-        await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
+        # await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
+        await ctx.channel.send(embed=generate_np_embed(ctx, song_queue[0]))
     else:
         print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
         await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
@@ -296,6 +288,59 @@ async def on_guild_remove(guild):
 
 # -------------- Functions ------------- #
 """
+    Generates embed for "Now Playing" messages
+    
+    song: tuple (song_title, playback_url, webpage_url, author of request)
+"""
+def generate_np_embed(ctx, song: tuple):
+    embed = discord.Embed(title="Now Playing", color=embed_theme)
+    embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
+    embed.set_footer(text=f"Requested by {song[3]}")
+    return embed
+
+
+"""
+    Generates embed for "Added to Queue" messages
+
+    song: tuple (song_title, playback_url, webpage_url, author of request)
+"""
+def generate_added_queue_embed(ctx, song, flag):
+    if flag == 0:
+        embed = discord.Embed(title="Added to Queue", color=embed_theme)
+        embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
+        embed.set_footer(text=f"Requested by {song[3]}")
+    else:
+        embed = discord.Embed(title="Added to Queue", color=embed_theme)
+        for i in song:
+            embed.add_field(name="Song: ", value=f"[{i[0]}]({i[2]})", inline=False)
+        embed.set_footer(text=f"Requested by {song[0][3]}")
+    return embed
+
+
+"""
+    Generates embed for "Queue" messages
+
+    queue: Server song queue
+"""
+def generate_display_queue(ctx, queue):
+    embed = discord.Embed(title="Queue", color=embed_theme)
+    # Build message to display
+    overflow = False
+    for count, song in enumerate(queue):
+        # Cap queue display length
+        if count == queue_display_length:
+            overflow = True
+            break
+        embed.add_field(name=f"{count + 1}: ", value=f"[{song[0]}]({song[2]})", inline=False)
+    # Display overflow message
+    if overflow:
+        embed.set_footer(text=f"+{len(queue) - queue_display_length} more")
+
+    # return embed
+    return embed
+
+
+"""
     Converts an indeterminate length tuple to a string
 """
 def tuple_to_string(tup):
@@ -339,20 +384,32 @@ def add_queue(guild_id, song_tuple):
 async def add_song_to_queue(ctx, song_info):
     # If link was a playlist, loop through list of songs and add them to the queue
     if type(song_info) == list:
-        message = ""
+        song_list = []
         for i in song_info:
+            # Generate song tuple
             title = i['title']
             url = i["formats"][0]["url"]
-            add_queue(ctx.guild.id, (title, url))
-            message += '\n' + title
-        await ctx.channel.send(f"**Added to the Queue** \n{message}", delete_after=20)
+            web_page = i['webpage_url']
+            song = (title, url, web_page, ctx.message.author.name)
+
+            # Add song to queue, and song list for playback and message display
+            add_queue(ctx.guild.id, song)
+            song_list.append(song)
+        await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1), delete_after=20)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
+        # Generate song tuple
         title = song_info['title']
         url = song_info["formats"][0]["url"]
+        web_page = song_info['webpage_url']
+        song = (title, url, web_page, ctx.message.author.name)
+
+        # Display added to queue if queue is not empty
         if get_queue(ctx.guild.id):
-            await ctx.channel.send(f"**Added to the Queue**\n\n{title}", delete_after=20)
-        add_queue(ctx.guild.id, (title, url))
+            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, 0), delete_after=20)
+
+        # add song to queue for playback
+        add_queue(ctx.guild.id, song)
 
 
 """
