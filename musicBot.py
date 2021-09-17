@@ -443,7 +443,7 @@ async def add_song_to_queue(ctx, song_info):
             # Add song to queue, and song list for playback and message display
             add_queue(ctx.guild.id, song)
             song_list.append(song)
-        if (len(song_info)) > 1:
+        if (len(song_info)) > 1 or len(get_queue(ctx.guild.id)) > 1:
             await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1), delete_after=20)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
