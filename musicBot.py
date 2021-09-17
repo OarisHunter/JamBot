@@ -352,13 +352,12 @@ def generate_np_embed(ctx, song: tuple):
     song: tuple (song_title, playback_url, webpage_url, author of request)
 """
 def generate_added_queue_embed(ctx, song, flag):
+    embed = discord.Embed(title="Added to Queue", color=embed_theme)
+    embed.set_thumbnail(url=bot.user.avatar_url)
     if flag == 0:
-        embed = discord.Embed(title="Added to Queue", color=embed_theme)
-        embed.set_thumbnail(url=bot.user.avatar_url)
         embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
         embed.set_footer(text=f"Requested by {song[3]}")
     else:
-        embed = discord.Embed(title="Added to Queue", color=embed_theme)
         for i in song:
             embed.add_field(name="Song: ", value=f"[{i[0]}]({i[2]})", inline=False)
         embed.set_footer(text=f"Requested by {song[0][3]}")
