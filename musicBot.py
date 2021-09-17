@@ -274,6 +274,7 @@ async def disconnect_(ctx):
     Command to change/display server defined prefix
 """
 @bot.command(name= 'prefix', help= 'Changes prefix for this server')
+@commands.has_permissions(administrator=True)
 async def prefix_(ctx, *prefix):
     # Parse Config, get server prefixes
     config_object = ConfigParser()
