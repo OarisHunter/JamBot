@@ -42,7 +42,7 @@ def get_prefix(client, message):
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
 
 """
     Called when bot start-up has finished
@@ -285,6 +285,18 @@ async def prefix_(ctx, *prefix):
         await ctx.channel.send(f'Prefix for {ctx.guild.name} is: {bot_prefixes[str(ctx.guild.id)]}', delete_after=10)
 
 
+"""
+    Displays custom help message
+    
+    Commands must have help defined in decorator to be displayed
+"""
+@bot.command(name= 'help')
+async def help_(ctx):
+    embed = generate_help_embed(ctx)
+
+    await ctx.channel.send(embed=embed)
+
+
 # --------------- Events -------------- #
 """
     Removes guild id and stored prefix from config.ini
@@ -333,6 +345,19 @@ async def on_guild_remove(guild):
 
 
 # -------------- Functions ------------- #
+"""
+    Generates message for "Help" command
+"""
+def generate_help_embed(ctx):
+    embed = discord.Embed(title="Help", color=embed_theme)
+    embed.set_thumbnail(url=bot.user.avatar_url)
+
+    for i in bot.commands:
+        if i.name != 'help':
+            embed.add_field(name=get_prefix(ctx, ctx)+i.name, value=i.help, inline=False)
+
+    return embed
+
 """
     Generates embed for "Now Playing" messages
     
