@@ -41,3 +41,4 @@ TO-DO LIST
     - Loop.
     - top 10 results on YT search.
     - Multi-skip.
+    - Auto-disconnect. (High priority)
