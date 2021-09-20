@@ -322,6 +322,24 @@ async def help_(ctx):
 
 # --------------- Events -------------- #
 """
+    Disconnects bot if it is alone in a voice channel
+"""
+@bot.event
+async def on_voice_state_update(member, before, after):
+    try:
+        # Check if bot is alone in channel, disconnect it if so
+        bot_channel = member.guild.voice_client.channel
+        if bot_channel is not None:
+            members = bot_channel.members
+            if bot.user in members and len(members) == 1:
+                # Disconnect bot
+                await member.guild.voice_client.disconnect()
+
+    except AttributeError:
+        pass
+
+
+"""
     Removes guild id and stored prefix from config.ini
 """
 @bot.event
