@@ -101,7 +101,7 @@ async def play_(ctx, *link):
     # allows for multi word song searches
     link = tuple_to_string(link)
 
-    # Check link type for
+    # Pass link to parser to determine origin
     await link_type_dl_redirect(ctx, link)
 
 
@@ -615,7 +615,7 @@ def read_config():
 
 
 """
-    
+    Extracts info from yt link, adds song to server queue, plays song from queue.
 """
 async def download_from_yt(ctx, link):
     try:
