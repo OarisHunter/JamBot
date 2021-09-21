@@ -9,6 +9,7 @@ Music Bot
 """
 
 import ast
+import math
 import os
 import discord
 import asyncio
@@ -396,7 +397,11 @@ async def on_guild_remove(guild):
 def generate_np_embed(ctx, song: tuple):
     embed = discord.Embed(title="Now Playing", color=embed_theme)
     embed.set_thumbnail(url=bot.user.avatar_url)
-    embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
+    embed.set_image(url=song[5])
+    embed.add_field(name="Song: ",
+                    value=f"[{song[0]}]({song[2]})\n"
+                          f"Duration - {math.floor(song[4]/60)}:{song[4]%60}",
+                    inline=False)
     embed.set_footer(text=f"Requested by {song[3].name}", icon_url=song[3].avatar_url)
     return embed
 
@@ -523,7 +528,9 @@ async def add_song_to_queue(ctx, song_info):
             title = i['title']
             url = i["formats"][0]["url"]
             web_page = i['webpage_url']
-            song = (title, url, web_page, ctx.message.author)
+            duration = song_info['duration']
+            thumbnail = song_info["thumbnails"][-1]['url']
+            song = (title, url, web_page, ctx.message.author, duration, thumbnail)
 
             # Add song to queue, and song list for playback and message display
             add_queue(ctx.guild.id, song)
@@ -536,8 +543,9 @@ async def add_song_to_queue(ctx, song_info):
         title = song_info['title']
         url = song_info["formats"][0]["url"]
         web_page = song_info['webpage_url']
-        song = (title, url, web_page, ctx.message.author)
-        # print(song_info['duration'])
+        duration = song_info['duration']
+        thumbnail = song_info["thumbnails"][-1]['url']
+        song = (title, url, web_page, ctx.message.author, duration, thumbnail)
 
         # Display added to queue if queue is not empty
         if len(get_queue(ctx.guild.id)) >= 1:

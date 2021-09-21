@@ -21,7 +21,7 @@ FEATURES
     - Pause/Resume.
     - Invite command.
     - Custom help command.
-    - Auto disconnect
+    - Auto disconnect/Disconnect time-out.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -42,4 +42,3 @@ TO-DO LIST
     - Loop.
     - top 10 results on YT search.
     - Multi-skip.
-    - Disconnect time-out.
