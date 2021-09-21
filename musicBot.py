@@ -355,6 +355,10 @@ async def on_guild_join(guild):
     create_server_queue()
 
     print(f"{bot.user.name} added to {guild.name}!")
+    # try:
+    await guild.system_channel.send(embed=generate_new_server_embed(guild))
+    # except discord.DiscordException:
+    #     print(f"Couldn't send new server message in {guild.name}")
 
     # Update config file
     with open('config.ini', 'w') as conf:
@@ -392,11 +396,11 @@ async def on_guild_remove(guild):
 """
 async def link_type_dl_redirect(ctx, link):
     if "https://music.apple.com" in link:
-        print("Apple ", link)
+        await ctx.channel.send("**Apple Music support coming soon!**", delete_after=20)
     elif "https://open.spotify.com" in link:
-        print("Spotify ", link)
+        await ctx.channel.send("**Spotify support coming soon!**", delete_after=20)
     elif "https://soundcloud.com" in link:
-        print("Soundcloud ", link)
+        await ctx.channel.send("**SoundCloud support coming soon!**", delete_after=20)
     else:
         await download_from_yt(ctx, link)
 
@@ -486,6 +490,34 @@ def generate_help(ctx):
     for i in bot.commands:
         if not i.name == 'help':
             embed.add_field(name=get_prefix(ctx, ctx) + i.name, value=i.help, inline=False)
+
+    return embed
+
+
+"""
+    Generate new server embed
+"""
+def generate_new_server_embed(guild):
+    embed = discord.Embed(title="Thanks for adding Tempo!", color=embed_theme)
+    embed.set_thumbnail(url=bot.user.avatar_url)
+    embed.set_author(name=bot.user.name, icon_url=bot.user.avatar_url)
+
+    embed.add_field(name="Getting Started!",
+                    value="Use '~help' to get started.\n"
+                          "You can change the prefix from '~' by using '~prefix <new prefix>",
+                    inline=False)
+
+    embed.add_field(name="▬▬▬▬▬▬▬▬▬▬▬",
+                    value='\u200b',
+                    inline=False)
+
+    embed.add_field(name="Bot is under constant development, Pardon the dust!",
+                    value="Restarts are frequent, songs may cut out during a restart.",
+                    inline=False)
+
+    embed.set_image(url=bot.user.avatar_url)
+
+    embed.set_footer(text=f"{bot.user.name} added to {guild.name}!", icon_url=guild.icon_url)
 
     return embed
 
