@@ -261,14 +261,16 @@ async def resume_(ctx):
 """
 @bot.command(name= 'disconnect', help= 'Disconnects from Voice')
 async def disconnect_(ctx):
-    vc = ctx.guild.voice_client
+    try:
+        vc = ctx.guild.voice_client
 
-    # Check that the bot is connected to voice
-    if vc.is_connected():
-        await vc.disconnect()
+        # Check that the bot is connected to voice
+        if vc.is_connected():
+            await vc.disconnect()
 
-    await ctx.message.delete()
-
+        await ctx.message.delete()
+    except discord.DiscordException:
+        pass
 
 """
     Command to change/display server defined prefix
@@ -535,6 +537,7 @@ async def add_song_to_queue(ctx, song_info):
         url = song_info["formats"][0]["url"]
         web_page = song_info['webpage_url']
         song = (title, url, web_page, ctx.message.author)
+        # print(song_info['duration'])
 
         # Display added to queue if queue is not empty
         if len(get_queue(ctx.guild.id)) >= 1:
@@ -579,11 +582,21 @@ async def play_music_(ctx, vc):
             print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
             break
 
+        # Pause function while playing song, prevents rapid song switching
         while vc.is_playing():
             await asyncio.sleep(1)
 
+        # Move to next song in queue once song is finished
         if song_queue:
             song_queue.pop(0)
+
+    # Disconnect if queue is empty and bot is not playing
+    await asyncio.sleep(180)
+    if not song_queue and not vc.is_playing():
+        try:
+            await ctx.invoke(bot.get_command('disconnect'))
+        except discord.DiscordException:
+            pass
 
 # Run bot
 bot.run(TOKEN)
