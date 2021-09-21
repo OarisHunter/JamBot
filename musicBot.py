@@ -528,8 +528,8 @@ async def add_song_to_queue(ctx, song_info):
             title = i['title']
             url = i["formats"][0]["url"]
             web_page = i['webpage_url']
-            duration = song_info['duration']
-            thumbnail = song_info["thumbnails"][-1]['url']
+            duration = i['duration']
+            thumbnail = i["thumbnails"][-1]['url']
             song = (title, url, web_page, ctx.message.author, duration, thumbnail)
 
             # Add song to queue, and song list for playback and message display
