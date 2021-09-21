@@ -77,9 +77,9 @@ async def on_ready():
 """
     Command to connect to voice
         plays song 
-            from link
-            from search
-            from playlist link
+            from yt link
+            from yt search
+            from yt playlist link
 """
 @bot.command(name= 'play', help= 'Connects Bot to Voice')
 async def play_(ctx, *link):
@@ -101,31 +101,8 @@ async def play_(ctx, *link):
     # allows for multi word song searches
     link = tuple_to_string(link)
 
-    # Call Youtube_DL to fetch song info
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        # DEBUG COMMAND
-        if link == "DEBUG":
-            song_info = ydl.extract_info(test_song, download=False)
-        else:
-            song_info = ydl.extract_info(link, download=False)
-    # print(song_info)  # Debug call to see youtube_dl output
-
-    # Detect if link is a playlist
-    try:
-        if song_info['_type'] == 'playlist':
-            # If link is a playlist set song_info to a list of songs
-            song_info = song_info['entries']
-        else:
-            print(f"Link from {ctx.guild.name} is unsupported")
-    except KeyError:
-        pass
-
-    # Add song(s) to queue from song info
-    await add_song_to_queue(ctx, song_info)
-
-    # Play song if not playing a song
-    if not vc.is_playing():
-        await play_music_(ctx, vc)
+    # Check link type for
+    await link_type_dl_redirect(ctx, link)
 
 
 """
@@ -133,33 +110,38 @@ async def play_(ctx, *link):
 """
 @bot.command(name= 'skip', help= 'Skips to next Song in Queue')
 async def skip_(ctx):
-    await ctx.message.delete(delay=5)
+    try:
+        await ctx.message.delete(delay=5)
 
-    vc = ctx.guild.voice_client  # Get current voice client
-    if vc is None:
-        print(f"Skip: Bot not connected to {ctx.guild.name}")
-        return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+        vc = ctx.guild.voice_client # Get current voice client
 
-    # Check that there is another song in the queue and the bot is currently playing
-    song_queue = get_queue(ctx.guild.id)
-    if len(song_queue) > 1 and vc.is_playing():
-        # Pop currently playing off queue
-        song_queue.pop(0)
+        if vc is None:
+            print(f"Skip: Bot not connected to {ctx.guild.name}")
+            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
-        # Update Voice Client source
-        try:
-            vc.source = discord.FFmpegPCMAudio(song_queue[0][1], **ffmpeg_opts)
-            vc.source = discord.PCMVolumeTransformer(vc.source)
-            vc.volume = 1
-        except discord.errors.ClientException:
-            print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
+        # Check that there is another song in the queue and the bot is currently playing
+        song_queue = get_queue(ctx.guild.id)
+        if len(song_queue) > 1 and vc.is_playing():
+            # Pop currently playing off queue
+            song_queue.pop(0)
 
-        # Display now playing message
-        await ctx.channel.send("**Skipped a Song!**", delete_after=10)
-        await ctx.invoke(bot.get_command('np'))
-    else:
-        vc.stop()
-        await ctx.channel.send("**Skipped a Song!**", delete_after=10)
+            # Update Voice Client source
+            try:
+                vc.source = discord.FFmpegPCMAudio(song_queue[0][1], **ffmpeg_opts)
+                vc.source = discord.PCMVolumeTransformer(vc.source)
+                vc.volume = 1
+            except discord.errors.ClientException:
+                print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
+
+            # Display now playing message
+            await ctx.channel.send("**Skipped a Song!**", delete_after=10)
+            await ctx.invoke(bot.get_command('np'))
+        else:
+            vc.stop()
+            await ctx.channel.send("**Skipped a Song!**", delete_after=10)
+
+    except discord.DiscordException:
+        pass
 
 
 """
@@ -167,13 +149,17 @@ async def skip_(ctx):
 """
 @bot.command(name= 'clear', help= 'Clears the Song Queue')
 async def clear_(ctx):
-    await ctx.message.delete(delay=5)
+    try:
+        await ctx.message.delete(delay=5)
 
-    # Empty the queue
-    get_queue(ctx.guild.id).clear()
+        # Empty the queue
+        get_queue(ctx.guild.id).clear()
 
-    # Send response
-    await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
+        # Send response
+        await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
+
+    except discord.DiscordException:
+        pass
 
 
 """
@@ -181,15 +167,20 @@ async def clear_(ctx):
 """
 @bot.command(name= 'queue', help= 'Displays the Queue')
 async def queue_(ctx):
-    await ctx.message.delete(delay=5)
+    try:
+        await ctx.message.delete(delay=5)
 
-    song_queue = get_queue(ctx.guild.id)
-    if song_queue:
-        embed = generate_display_queue(ctx, song_queue)
+        song_queue = get_queue(ctx.guild.id)
+        if song_queue:
+            embed = generate_display_queue(ctx, song_queue)
 
-        await ctx.channel.send(embed=embed, delete_after=60)
-    else:
-        await ctx.channel.send("**Queue is empty!**", delete_after=10)
+            await ctx.channel.send(embed=embed, delete_after=60)
+        else:
+            await ctx.channel.send("**Queue is empty!**", delete_after=10)
+
+    except discord.DiscordException:
+        pass
+
 
 """
     Command to display "Now Playing" message
@@ -198,18 +189,21 @@ async def queue_(ctx):
 async def nowPlaying_(ctx):
     try:
         await ctx.message.delete(delay=5)
+
+        vc = ctx.message.guild.voice_client
+        song_queue = get_queue(ctx.guild.id)
+        if vc and vc.is_playing():
+            print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
+            # await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
+            await ctx.channel.send(embed=generate_np_embed(ctx, song_queue[0]))
+        else:
+            print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
+            await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
+
     except discord.DiscordException:
         pass
 
-    vc = ctx.message.guild.voice_client
-    song_queue = get_queue(ctx.guild.id)
-    if vc and vc.is_playing():
-        print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
-        # await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
-        await ctx.channel.send(embed=generate_np_embed(ctx, song_queue[0]))
-    else:
-        print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
-        await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
+
 
 
 """
@@ -219,20 +213,21 @@ async def nowPlaying_(ctx):
 async def pause_(ctx):
     try:
         await ctx.message.delete(delay=5)
+
+        vc = ctx.guild.voice_client
+
+        if vc.is_connected() and vc.is_playing():
+            vc.pause()
+            await ctx.channel.send(f'**Music Paused!**', delete_after=10)
+        elif vc.is_connected() and vc.is_paused():
+            await ctx.channel.send(f'Already Paused', delete_after=10)
+        elif vc.is_connected() and not vc.is_playing():
+            await ctx.channel.send(f'Not Playing Anything', delete_after=10)
+        else:
+            await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
+
     except discord.DiscordException:
         pass
-
-    vc = ctx.guild.voice_client
-
-    if vc.is_connected() and vc.is_playing():
-        vc.pause()
-        await ctx.channel.send(f'**Music Paused!**', delete_after=10)
-    elif vc.is_connected() and vc.is_paused():
-        await ctx.channel.send(f'Already Paused', delete_after=10)
-    elif vc.is_connected() and not vc.is_playing():
-        await ctx.channel.send(f'Not Playing Anything', delete_after=10)
-    else:
-        await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
 
 """
@@ -270,6 +265,7 @@ async def disconnect_(ctx):
             await vc.disconnect()
 
         await ctx.message.delete()
+
     except discord.DiscordException:
         pass
 
@@ -389,6 +385,22 @@ async def on_guild_remove(guild):
 
 
 # -------------- Functions ------------- #
+"""
+    Directs link to proper parse method
+    
+    Support for Apple, SoundCloud, Spotify, and YT
+"""
+async def link_type_dl_redirect(ctx, link):
+    if "https://music.apple.com" in link:
+        print("Apple ", link)
+    elif "https://open.spotify.com" in link:
+        print("Spotify ", link)
+    elif "https://soundcloud.com" in link:
+        print("Soundcloud ", link)
+    else:
+        await download_from_yt(ctx, link)
+
+
 """
     Generates embed for "Now Playing" messages
     
@@ -568,6 +580,43 @@ def read_config():
     ydl_opts = ast.literal_eval(bot_settings["ydl_opts"])
     ffmpeg_opts = ast.literal_eval(bot_settings["ffmpeg_opts"])
     invite_link = bot_settings["invite_link"]
+
+
+"""
+    
+"""
+async def download_from_yt(ctx, link):
+    try:
+        vc = ctx.guild.voice_client
+
+        # Call Youtube_DL to fetch song info
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            # DEBUG COMMAND
+            if link == "DEBUG":
+                song_info = ydl.extract_info(test_song, download=False)
+            else:
+                song_info = ydl.extract_info(link, download=False)
+        # print(song_info)  # Debug call to see youtube_dl output
+
+        # Detect if link is a playlist
+        try:
+            if song_info['_type'] == 'playlist':
+                # If link is a playlist set song_info to a list of songs
+                song_info = song_info['entries']
+            else:
+                print(f"Link from {ctx.guild.name} is unsupported")
+        except KeyError:
+            pass
+
+        # Add song(s) to queue from song info
+        await add_song_to_queue(ctx, song_info)
+
+        # Play song if not playing a song
+        if not vc.is_playing():
+            await play_music_(ctx, vc)
+
+    except discord.DiscordException:
+        pass
 
 
 """
