@@ -9,13 +9,13 @@ Music Bot
 """
 
 import ast
-import math
 import os
 import discord
 import asyncio
 import youtube_dl
 
 from discord.ext import commands
+from botEmbeds import *
 from dotenv import load_dotenv
 from configparser import ConfigParser
 
@@ -172,7 +172,7 @@ async def queue_(ctx):
 
         song_queue = get_queue(ctx.guild.id)
         if song_queue:
-            embed = generate_display_queue(ctx, song_queue)
+            embed = generate_display_queue(ctx, song_queue, bot, embed_theme, queue_display_length)
 
             await ctx.channel.send(embed=embed, delete_after=60)
         else:
@@ -195,7 +195,7 @@ async def nowPlaying_(ctx):
         if vc and vc.is_playing():
             print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
             # await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
-            await ctx.channel.send(embed=generate_np_embed(ctx, song_queue[0]))
+            await ctx.channel.send(embed=generate_np_embed(ctx, song_queue[0], bot, embed_theme))
         else:
             print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
             await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
@@ -261,7 +261,7 @@ async def disconnect_(ctx):
         vc = ctx.guild.voice_client
 
         # Check that the bot is connected to voice
-        if vc.is_connected():
+        if vc and vc.is_connected():
             await vc.disconnect()
 
         await ctx.message.delete()
@@ -288,7 +288,8 @@ async def prefix_(ctx, *prefix):
         with open('config.ini', 'w') as conf:
             config_object.write(conf)
 
-        await ctx.channel.send(f'Prefix for {ctx.guild.name} has been changed to: {bot_prefixes[str(ctx.guild.id)]}', delete_after=10)
+        await ctx.channel.send(f'Prefix for {ctx.guild.name} has been changed to: {bot_prefixes[str(ctx.guild.id)]}',
+                               delete_after=10)
     else:
         await ctx.channel.send(f'Prefix for {ctx.guild.name} is: {bot_prefixes[str(ctx.guild.id)]}', delete_after=10)
 
@@ -303,7 +304,7 @@ async def invite_(ctx):
     except discord.DiscordException:
         pass
 
-    await ctx.channel.send(embed=generate_invite(ctx))
+    await ctx.channel.send(embed=generate_invite(ctx, bot, embed_theme, invite_link))
 
 
 """
@@ -316,7 +317,7 @@ async def help_(ctx):
     except discord.DiscordException:
         pass
 
-    await ctx.channel.send(embed=generate_help(ctx))
+    await ctx.channel.send(embed=generate_help(ctx, bot, embed_theme, get_prefix))
 
 
 # --------------- Events -------------- #
@@ -356,7 +357,7 @@ async def on_guild_join(guild):
 
     print(f"{bot.user.name} added to {guild.name}!")
     # try:
-    await guild.system_channel.send(embed=generate_new_server_embed(guild))
+    await guild.system_channel.send(embed=generate_new_server_embed(guild, bot, embed_theme))
     # except discord.DiscordException:
     #     print(f"Couldn't send new server message in {guild.name}")
 
@@ -403,123 +404,6 @@ async def link_type_dl_redirect(ctx, link):
         await ctx.channel.send("**SoundCloud support coming soon!**", delete_after=20)
     else:
         await download_from_yt(ctx, link)
-
-
-"""
-    Generates embed for "Now Playing" messages
-    
-    song: tuple (song_title, playback_url, webpage_url, author of request)
-"""
-def generate_np_embed(ctx, song: tuple):
-    embed = discord.Embed(title="Now Playing", color=embed_theme)
-    embed.set_thumbnail(url=bot.user.avatar_url)
-    embed.set_image(url=song[5])
-    embed.add_field(name="Song: ",
-                    value=f"[{song[0]}]({song[2]})\n"
-                          f"Duration - {math.floor(song[4]/60)}:{math.floor(song[4]%60)}",
-                    inline=False)
-    embed.set_footer(text=f"Requested by {song[3].name}", icon_url=song[3].avatar_url)
-    return embed
-
-
-"""
-    Generates embed for "Added to Queue" messages
-
-    song: tuple (song_title, playback_url, webpage_url, author of request)
-"""
-def generate_added_queue_embed(ctx, song, flag):
-    embed = discord.Embed(title="Added to Queue", color=embed_theme)
-    embed.set_thumbnail(url=bot.user.avatar_url)
-    if flag == 0:
-        embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
-        embed.set_footer(text=f"Requested by {song[3].name}", icon_url=song[3].avatar_url)
-    else:
-        for i in song:
-            embed.add_field(name="Song: ", value=f"[{i[0]}]({i[2]})", inline=False)
-        embed.set_footer(text=f"Requested by {song[0][3].name}", icon_url=song[0][3].avatar_url)
-    return embed
-
-
-"""
-    Generates embed for "Queue" messages
-
-    queue: Server song queue
-"""
-def generate_display_queue(ctx, queue):
-    embed = discord.Embed(title="Queue", color=embed_theme)
-    embed.set_thumbnail(url=bot.user.avatar_url)
-    # Build message to display
-    overflow = False
-    for count, song in enumerate(queue):
-        # Cap queue display length
-        if count == queue_display_length:
-            overflow = True
-            break
-        embed.add_field(name=f"{count + 1}: ", value=f"[{song[0]}]({song[2]})", inline=False)
-    # Display overflow message
-    if overflow:
-        embed.set_footer(text=f"+{len(queue) - queue_display_length} more")
-
-    # return embed
-    return embed
-
-
-"""
-    Generate invite embed
-"""
-def generate_invite(ctx):
-    embed = discord.Embed(title="Invite Link", url=invite_link,  color=embed_theme)
-    embed.set_thumbnail(url=bot.user.avatar_url)
-    embed.set_author(name=bot.user.name, icon_url=bot.user.avatar_url)
-
-    embed.add_field(name=f"Copyable link:", value=f"{invite_link}", inline=False)
-
-    embed.set_footer(text=f"Generated by {ctx.message.author.name}", icon_url=ctx.message.author.avatar_url)
-
-    return embed
-
-
-"""
-    Generates help embed
-"""
-def generate_help(ctx):
-    embed = discord.Embed(title="Help", color=embed_theme)
-    embed.set_thumbnail(url=bot.user.avatar_url)
-    embed.set_author(name=bot.user.name, icon_url=bot.user.avatar_url)
-
-    for i in bot.commands:
-        if not i.name == 'help':
-            embed.add_field(name=get_prefix(ctx, ctx) + i.name, value=i.help, inline=False)
-
-    return embed
-
-
-"""
-    Generate new server embed
-"""
-def generate_new_server_embed(guild):
-    embed = discord.Embed(title="Thanks for adding Tempo!", color=embed_theme)
-    embed.set_thumbnail(url=bot.user.avatar_url)
-    embed.set_author(name=bot.user.name, icon_url=bot.user.avatar_url)
-
-    embed.add_field(name="Getting Started!",
-                    value="Use '~help' to get started.\n"
-                          "You can change the prefix from '~' by using '~prefix <new prefix>",
-                    inline=False)
-
-    embed.add_field(name="▬▬▬▬▬▬▬▬▬▬▬",
-                    value='\u200b',
-                    inline=False)
-
-    embed.add_field(name="Bot is under constant development, Pardon the dust!",
-                    value="Restarts are frequent, songs may cut out during a restart.",
-                    inline=False)
-
-    embed.set_image(url=bot.user.avatar_url)
-
-    embed.set_footer(text=f"{bot.user.name} added to {guild.name}!", icon_url=guild.icon_url)
-
-    return embed
 
 
 """
@@ -580,7 +464,7 @@ async def add_song_to_queue(ctx, song_info):
             add_queue(ctx.guild.id, song)
             song_list.append(song)
         if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
-            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1), delete_after=20)
+            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1, bot, embed_theme), delete_after=20)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
         # Generate song tuple
@@ -593,7 +477,7 @@ async def add_song_to_queue(ctx, song_info):
 
         # Display added to queue if queue is not empty
         if len(get_queue(ctx.guild.id)) >= 1:
-            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, 0), delete_after=20)
+            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, 0, bot, embed_theme), delete_after=20)
 
         # add song to queue for playback
         add_queue(ctx.guild.id, song)
