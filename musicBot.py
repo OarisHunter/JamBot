@@ -13,8 +13,10 @@ import os
 import discord
 import asyncio
 import youtube_dl
+import spotipy
 
 from discord.ext import commands
+from spotipy import SpotifyClientCredentials
 from botEmbeds import *
 from dotenv import load_dotenv
 from configparser import ConfigParser
@@ -51,6 +53,10 @@ else:
     TOKEN = os.getenv('DISCORD_TOKEN')
     intents = discord.Intents.all()
     bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
+# Spotify API
+spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
+                                                                              client_secret=os.getenv('SPOTIFY_SECRET')
+                                                                              ))
 
 
 """
@@ -102,7 +108,15 @@ async def play_(ctx, *link):
     link = tuple_to_string(link)
 
     # Pass link to parser to determine origin
-    await link_type_dl_redirect(ctx, link)
+    song_info = await extract_song_info(ctx, link)
+
+    if song_info:
+        # Add song(s) to queue from song info
+        await add_song_to_queue(ctx, song_info)
+
+        # Play song if not playing a song
+        if not vc.is_playing():
+            await play_music_(ctx)
 
 
 """
@@ -395,15 +409,18 @@ async def on_guild_remove(guild):
     
     Support for Apple, SoundCloud, Spotify, and YT
 """
-async def link_type_dl_redirect(ctx, link):
+async def extract_song_info(ctx, link):
+    song_info = None
     if "https://music.apple.com" in link:
         await ctx.channel.send("**Apple Music support coming soon!**", delete_after=20)
     elif "https://open.spotify.com" in link:
-        await ctx.channel.send("**Spotify support coming soon!**", delete_after=20)
+        await ctx.channel.send("**Spotify Link!** This may take a moment...", delete_after=20)
+        song_info = await spotify_to_yt_dl(ctx, link)
     elif "https://soundcloud.com" in link:
         await ctx.channel.send("**SoundCloud support coming soon!**", delete_after=20)
     else:
-        await download_from_yt(ctx, link)
+        song_info = await download_from_yt(ctx, link)
+    return song_info
 
 
 """
@@ -464,7 +481,7 @@ async def add_song_to_queue(ctx, song_info):
             add_queue(ctx.guild.id, song)
             song_list.append(song)
         if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
-            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, 1, bot, embed_theme), delete_after=20)
+            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length), delete_after=40)
     # Otherwise add the single song to the queue, display message if song was added to the queue
     else:
         # Generate song tuple
@@ -477,7 +494,7 @@ async def add_song_to_queue(ctx, song_info):
 
         # Display added to queue if queue is not empty
         if len(get_queue(ctx.guild.id)) >= 1:
-            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, 0, bot, embed_theme), delete_after=20)
+            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, bot, embed_theme, queue_display_length), delete_after=40)
 
         # add song to queue for playback
         add_queue(ctx.guild.id, song)
@@ -499,77 +516,102 @@ def read_config():
 
 
 """
+    Extract songs and artists from spotify playlist, convert to song list, get song info from youtube
+"""
+async def spotify_to_yt_dl(ctx, link):
+    song_info = None
+    # Check for track or playlist link
+    if 'playlist' in link:
+        # Get playlist from playlist id
+        playlist = spotify.playlist_items(link[link.find("playlist/") + 9:])
+        # convert playlist tracks to list of youtube searchable strings
+        song_info = []
+        for i in playlist['tracks']['items']:
+            search = f"{i['track']['name']} {i['track']['album']['artists'][0]['name']}"
+
+            # Download song info from yt and add to song info list
+            yt_dl = await download_from_yt(ctx, search)
+            song_info.append(yt_dl[0])
+
+    elif 'track' in link:
+        # Get track from track id
+        track = spotify.track(link[link.find("track/") + 6:])
+        # Convert into youtube searchable string
+        search = f"{track['name']} {track['album']['artists'][0]['name']}"
+
+        # Download song info from yt and add to song info
+        song_info = await download_from_yt(ctx, search)
+
+    else:
+        pass
+    return song_info
+
+
+"""
     Extracts info from yt link, adds song to server queue, plays song from queue.
 """
 async def download_from_yt(ctx, link):
+    # Call Youtube_DL to fetch song info
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        # DEBUG COMMAND
+        if link == "DEBUG":
+            song_info = ydl.extract_info(test_song, download=False)
+        else:
+            song_info = ydl.extract_info(link, download=False)
+    # print(song_info)  # Debug call to see youtube_dl output
+
+    # Detect if link is a playlist
     try:
-        vc = ctx.guild.voice_client
-
-        # Call Youtube_DL to fetch song info
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            # DEBUG COMMAND
-            if link == "DEBUG":
-                song_info = ydl.extract_info(test_song, download=False)
-            else:
-                song_info = ydl.extract_info(link, download=False)
-        # print(song_info)  # Debug call to see youtube_dl output
-
-        # Detect if link is a playlist
-        try:
-            if song_info['_type'] == 'playlist':
-                # If link is a playlist set song_info to a list of songs
-                song_info = song_info['entries']
-            else:
-                print(f"Link from {ctx.guild.name} is unsupported")
-        except KeyError:
-            pass
-
-        # Add song(s) to queue from song info
-        await add_song_to_queue(ctx, song_info)
-
-        # Play song if not playing a song
-        if not vc.is_playing():
-            await play_music_(ctx, vc)
-
-    except discord.DiscordException:
+        if song_info['_type'] == 'playlist':
+            # If link is a playlist set song_info to a list of songs
+            song_info = song_info['entries']
+        else:
+            print(f"Link from {ctx.guild.name} is unsupported")
+    except KeyError:
         pass
+
+    return song_info
 
 
 """
     Play songs in server's queue
 """
-async def play_music_(ctx, vc):
-    song_queue = get_queue(ctx.guild.id)
-    while song_queue:
-        try:
-            if vc.is_connected() and not vc.is_playing():
-                # Create FFmpeg audio stream, attach to voice client
-                vc.play(discord.FFmpegPCMAudio(song_queue[0][1], **ffmpeg_opts))
-                vc.source = discord.PCMVolumeTransformer(vc.source)
-                vc.volume = 1
+async def play_music_(ctx):
+    try:
+        vc = ctx.guild.voice_client
+        song_queue = get_queue(ctx.guild.id)
 
-                # Display now playing message
-                await ctx.invoke(bot.get_command('np'))
+        while song_queue:
+            try:
+                if vc.is_connected() and not vc.is_playing():
+                    # Create FFmpeg audio stream, attach to voice client
+                    vc.play(discord.FFmpegPCMAudio(song_queue[0][1], **ffmpeg_opts))
+                    vc.source = discord.PCMVolumeTransformer(vc.source)
+                    vc.volume = 1
 
-        except discord.errors.ClientException:
-            print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
-            break
+                    # Display now playing message
+                    await ctx.invoke(bot.get_command('np'))
 
-        # Pause function while playing song, prevents rapid song switching
-        while vc.is_playing():
-            await asyncio.sleep(1)
+            except discord.errors.ClientException:
+                print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
+                break
 
-        # Move to next song in queue once song is finished
-        if song_queue:
-            song_queue.pop(0)
+            # Pause function while playing song, prevents rapid song switching
+            while vc.is_playing():
+                await asyncio.sleep(1)
 
-    # Disconnect if queue is empty and bot is not playing
-    await asyncio.sleep(180)
-    if not song_queue and not vc.is_playing():
-        try:
+            # Move to next song in queue once song is finished
+            if song_queue:
+                song_queue.pop(0)
+
+        # Disconnect if queue is empty and bot is not playing
+        await asyncio.sleep(180)
+        if not song_queue and not vc.is_playing():
             await ctx.invoke(bot.get_command('disconnect'))
-        except discord.DiscordException:
-            pass
+
+    except discord.DiscordException:
+        pass
+
 
 # Run bot
 bot.run(TOKEN)

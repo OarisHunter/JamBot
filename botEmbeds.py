@@ -34,17 +34,27 @@ def generate_np_embed(ctx, song: tuple, bot, embed_theme):
 
     song: tuple (song_title, playback_url, webpage_url, author of request)
 """
-def generate_added_queue_embed(ctx, song, flag, bot, embed_theme):
+def generate_added_queue_embed(ctx, song, bot, embed_theme, queue_display_length):
     embed = discord.Embed(title="Added to Queue", color=embed_theme)
     embed.set_thumbnail(url=bot.user.avatar_url)
-    if flag == 0:
+    if type(song) == tuple:
         embed.add_field(name="Song: ", value=f"[{song[0]}]({song[2]})", inline=False)
         embed.set_footer(text=f"Requested by {song[3].name}", icon_url=song[3].avatar_url)
     else:
-        for i in song:
-            embed.add_field(name="Song: ", value=f"[{i[0]}]({i[2]})", inline=False)
-        embed.set_footer(text=f"Requested by {song[0][3].name}", icon_url=song[0][3].avatar_url)
+        overflow = False
+        for count, i in enumerate(song):
+            # Cap queued song display length
+            if count == queue_display_length:
+                overflow = True
+                break
+            embed.add_field(name=f"{count + 1}: ", value=f"[{i[0]}]({i[2]})", inline=False)
+        if overflow:
+            embed.set_footer(text=f"+{len(song) - queue_display_length} more")
+        else:
+            embed.set_footer(text=f"Requested by {song[0][3].name}", icon_url=song[0][3].avatar_url)
     return embed
+
+
 """
     Generates embed for "Queue" messages
 
