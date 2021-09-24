@@ -17,6 +17,7 @@ import spotipy
 
 from discord.ext import commands
 from spotipy import SpotifyClientCredentials
+from sclib import SoundcloudAPI, Track, Playlist
 from botEmbeds import *
 from dotenv import load_dotenv
 from configparser import ConfigParser
@@ -57,6 +58,8 @@ else:
 spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                               client_secret=os.getenv('SPOTIFY_SECRET')
                                                                               ))
+# SoundCloud API
+soundcloud = SoundcloudAPI()
 
 
 """
@@ -92,6 +95,17 @@ async def play_(ctx, *link):
     await ctx.message.delete(delay=5)
 
     # Check that author is in a voice channel
+    if ctx.author.voice is None:
+        return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+
+    # Convert command args to string
+    # allows for multi word song searches
+    link = tuple_to_string(link)
+
+    # Pass link to parser to determine origin
+    song_info = await extract_song_info(ctx, link)
+
+    # Check that author is in a voice channel
     if ctx.author.voice is not None:
         try:
             # Connect to channel of author
@@ -102,13 +116,6 @@ async def play_(ctx, *link):
     else:
         print(f"Play: Bot not connected to {ctx.guild.name}")
         return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
-
-    # Convert command args to string
-    # allows for multi word song searches
-    link = tuple_to_string(link)
-
-    # Pass link to parser to determine origin
-    song_info = await extract_song_info(ctx, link)
 
     if song_info:
         # Add song(s) to queue from song info
@@ -417,7 +424,8 @@ async def extract_song_info(ctx, link):
         await ctx.channel.send("**Spotify Link!** This may take a moment...", delete_after=20)
         song_info = await spotify_to_yt_dl(ctx, link)
     elif "https://soundcloud.com" in link:
-        await ctx.channel.send("**SoundCloud support coming soon!**", delete_after=20)
+        await ctx.channel.send("**SoundCloud Link!** This may take a moment...", delete_after=20)
+        song_info = await soundcloud_to_yt_dl(ctx, link)
     else:
         song_info = await download_from_yt(ctx, link)
     return song_info
@@ -547,6 +555,26 @@ async def spotify_to_yt_dl(ctx, link):
     return song_info
 
 
+async def soundcloud_to_yt_dl(ctx, link):
+    song_info = None
+    sc_result = soundcloud.resolve(link)
+    if type(sc_result) == Playlist:
+        # Get playlist info from SoundCloud
+        song_info = []
+        for track in sc_result:
+            # Convert track details into searchable youtube string
+            search = f'{track.title} {track.artist}'
+            # Get song info from youtube and add to song info list
+            yt_dl = await download_from_yt(ctx, search)
+            song_info.append(yt_dl[0])
+    elif type(sc_result) == Track:
+        search = f'{sc_result.title} {sc_result.artist}'
+        song_info = await download_from_yt(ctx, search)
+    else:
+        pass
+    return song_info
+
+
 """
     Extracts info from yt link, adds song to server queue, plays song from queue.
 """
@@ -578,7 +606,9 @@ async def download_from_yt(ctx, link):
 """
 async def play_music_(ctx):
     try:
+        # Get voice client
         vc = ctx.guild.voice_client
+        # Get server song queue
         song_queue = get_queue(ctx.guild.id)
 
         while song_queue:

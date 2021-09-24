@@ -22,12 +22,13 @@ FEATURES
     - Invite command.
     - Custom help command.
     - Auto disconnect/Disconnect time-out.
+    - Spotify, Soundcloud support
 
 ------------------------------------------------------------------------------------------------------------------------
 
 KNOWN ISSUES
 
-    NONE :)
+    - Bot times out before large Spotify/SoundCloud playlists can be parsed.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -42,4 +43,4 @@ TO-DO LIST
     - Loop.
     - top 10 results on YT search.
     - Multi-skip.
-    - Spotify, Soundcloud & Apple Music support.
+    - Apple Music support.
