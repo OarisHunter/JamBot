@@ -23,12 +23,13 @@ FEATURES
     - Custom help command.
     - Auto disconnect/Disconnect time-out.
     - Spotify, Soundcloud support
+        NOTE: Songs added from an external playlist do not have links until they are played.
 
 ------------------------------------------------------------------------------------------------------------------------
 
 KNOWN ISSUES
 
-    - Bot times out before large Spotify/SoundCloud playlists can be parsed.
+    - None :)
 
 ------------------------------------------------------------------------------------------------------------------------
 

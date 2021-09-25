@@ -47,7 +47,11 @@ def generate_added_queue_embed(ctx, song, bot, embed_theme, queue_display_length
             if count == queue_display_length:
                 overflow = True
                 break
-            embed.add_field(name=f"{count + 1}: ", value=f"[{i[0]}]({i[2]})", inline=False)
+            # Embed link if song info is from youtube
+            if type(i) == str:
+                embed.add_field(name=f"{count + 1}: ", value=f"{i}", inline=False)
+            else:
+                embed.add_field(name=f"{count + 1}: ", value=f"[{i[0]}]({i[2]})", inline=False)
         if overflow:
             embed.set_footer(text=f"+{len(song) - queue_display_length} more")
         else:
@@ -70,7 +74,11 @@ def generate_display_queue(ctx, queue, bot, embed_theme, queue_display_length):
         if count == queue_display_length:
             overflow = True
             break
-        embed.add_field(name=f"{count + 1}: ", value=f"[{song[0]}]({song[2]})", inline=False)
+        # Embed link if song info is from youtube
+        if type(song) == str:
+            embed.add_field(name=f"{count + 1}: ", value=f"{song}", inline=False)
+        else:
+            embed.add_field(name=f"{count + 1}: ", value=f"[{song[0]}]({song[2]})", inline=False)
     # Display overflow message
     if overflow:
         embed.set_footer(text=f"+{len(queue) - queue_display_length} more")
