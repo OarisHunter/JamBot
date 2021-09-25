@@ -23,7 +23,7 @@ def generate_np_embed(ctx, song: tuple, bot, embed_theme):
     embed.set_image(url=song[5])
     embed.add_field(name="Song: ",
                     value=f"[{song[0]}]({song[2]})\n"
-                          f"Duration - {math.floor(song[4] / 60)}:{math.floor(song[4] % 60)}",
+                          f"Duration - {math.floor(song[4] / 60)}:{str(math.floor(song[4] % 60)).rjust(2, '0')}",
                     inline=False)
     embed.set_footer(text=f"Requested by {song[3].name}", icon_url=song[3].avatar_url)
     return embed
