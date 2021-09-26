@@ -468,8 +468,11 @@ def get_queue(guild_id):
 """
     Add song to Server Queue in Queue Dict
 """
-def add_queue(guild_id, song_tuple):
-    server_queues[str(guild_id)].append(song_tuple)
+def add_queue(guild_id, song_set):
+    if type(song_set) == list:
+        [server_queues[str(guild_id)].append(i) for i in song_set]
+    else:
+        server_queues[str(guild_id)].append(song_set)
 
 """
     Extract info from song_info into song tuple
@@ -510,14 +513,8 @@ async def add_song_to_queue(ctx, song_info, from_youtube=True):
     if from_youtube:
         # If link was a playlist, loop through list of songs and add them to the queue
         if type(song_info) == list:
-            song_list = []
-            for i in song_info:
-                # Generate song tuple
-                song = song_info_to_tuple(i, ctx)
-
-                # Add song to queue, and song list for playback and message display
-                add_queue(ctx.guild.id, song)
-                song_list.append(song)
+            song_list = [song_info_to_tuple(i, ctx) for i in song_info]
+            add_queue(ctx.guild.id, song_list)
             if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
                 await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length), delete_after=40)
         # Otherwise add the single song to the queue, display message if song was added to the queue
@@ -532,11 +529,9 @@ async def add_song_to_queue(ctx, song_info, from_youtube=True):
             # add song to queue for playback
             add_queue(ctx.guild.id, song)
     else:
-        song_list = []
-        for i in song_info:
-            # Add song to queue, and song list for playback and message display
-            add_queue(ctx.guild.id, i)
-            song_list.append(i)
+        # Create song list, add songs to server queue, display message
+        song_list = [i for i in song_info]
+        add_queue(ctx.guild.id, song_list)
         if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
             await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length), delete_after=40)
 
@@ -569,25 +564,18 @@ async def spotify_to_yt_dl(ctx, link):
     track_flag = True
     # Check for track or playlist link
     if 'playlist' in link:
-        track_flag = False
         # Get playlist from playlist id
         playlist = spotify.playlist_items(link[link.find("playlist/") + 9:])
         # convert playlist tracks to list of youtube searchable strings
-        song_info = []
-        for i in playlist['tracks']['items']:
-            search = f"{i['track']['name']} {i['track']['album']['artists'][0]['name']}"
-
-            # Download song info from yt and add to song info list
-            song_info.append(search)
+        song_info = [f"{i['track']['name']} {i['track']['album']['artists'][0]['name']}"
+                     for i in playlist['tracks']['items']]
+        track_flag = False
 
     elif 'track' in link:
         # Get track from track id
         track = spotify.track(link[link.find("track/") + 6:])
-        # Convert into youtube searchable string
-        search = f"{track['name']} {track['album']['artists'][0]['name']}"
-
         # Download song info from yt and add to song info
-        yt_dl = await download_from_yt(ctx, search)
+        yt_dl = await download_from_yt(ctx, f"{track['name']} {track['album']['artists'][0]['name']}")
         song_info = yt_dl[0]
 
     else:
@@ -609,22 +597,14 @@ async def soundcloud_to_yt_dl(ctx, link):
     sc_result = soundcloud.resolve(link)
 
     if type(sc_result) == Playlist:
-        # Get playlist info from SoundCloud
+        # Convert track details into searchable youtube string
+        song_info = [f'{track.title} {track.artist}'
+                     for track in sc_result]
         track_flag = False
-        song_info = []
-        for track in sc_result:
-            # Convert track details into searchable youtube string
-            search = f'{track.title} {track.artist}'
-
-            # Get song info from youtube and add to song info list
-            song_info.append(search)
 
     elif type(sc_result) == Track:
-        # Convert track details into searchable youtube string
-        search = f'{sc_result.title} {sc_result.artist}'
-
         # Get song info from youtube and add to song info list
-        yt_dl = await download_from_yt(ctx, search)
+        yt_dl = await download_from_yt(ctx, f'{sc_result.title} {sc_result.artist}')
         song_info = yt_dl[0]
 
     else:
@@ -638,7 +618,7 @@ async def soundcloud_to_yt_dl(ctx, link):
 async def download_from_yt(ctx, link):
     # Call Youtube_DL to fetch song info
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        # DEBUG COMMAND
+        # DEBUG COMMAND, pass test song from config in place of link
         if link == "DEBUG":
             song_info = ydl.extract_info(test_song, download=False)
         else:
@@ -671,11 +651,12 @@ async def play_music_(ctx):
         while song_queue:
             try:
                 if vc.is_connected() and not vc.is_playing():
-                    # Create FFmpeg audio stream, attach to voice client
+                    # Replace yt searchable string in queue with yt_dl song info
                     if type(song_queue[0]) == str:
                         yt_dl = await download_from_yt(ctx, song_queue[0])
                         song_queue[0] = song_info_to_tuple(yt_dl[0], ctx)
                     song_url = song_queue[0][1]
+                    # Create FFmpeg audio stream, attach to voice client
                     vc.play(discord.FFmpegPCMAudio(song_url, **ffmpeg_opts))
                     vc.source = discord.PCMVolumeTransformer(vc.source)
                     vc.volume = 1
