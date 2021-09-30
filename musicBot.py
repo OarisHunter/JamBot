@@ -10,7 +10,6 @@ Music Bot
 
 import ast
 import os
-import discord
 import asyncio
 import youtube_dl
 import spotipy
@@ -18,7 +17,7 @@ import spotipy
 from discord.ext import commands
 from spotipy import SpotifyClientCredentials
 from sclib import SoundcloudAPI, Track, Playlist
-from botEmbeds import *
+from helpers.BotEmbeds import *
 from dotenv import load_dotenv
 from configparser import ConfigParser
 
@@ -34,13 +33,16 @@ embed_theme = discord.Color.dark_gold()
 invite_link = ""
 
 
-"""
-    Get prefixes from config.ini
-"""
 def get_prefix(client, message):
+    """
+        Get prefixes from config.ini
+    """
     config_object = ConfigParser()
     config_object.read("config.ini")
     bot_prefixes = config_object["PREFIXES"]
+    # in DM messages force default prefix
+    if not message.guild:
+        return default_prefix
     return bot_prefixes[str(message.guild.id)]
 
 
@@ -54,19 +56,28 @@ else:
     TOKEN = os.getenv('DISCORD_TOKEN')
     intents = discord.Intents.all()
     bot = commands.Bot(command_prefix=get_prefix, intents=intents, help_command=None)
+# SoundCloud API
+soundcloud = SoundcloudAPI()
 # Spotify API
 spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                               client_secret=os.getenv('SPOTIFY_SECRET')
                                                                               ))
-# SoundCloud API
-soundcloud = SoundcloudAPI()
+# Bot command / control extentsions
+extensions = [
+    'cogs.commands',
+    'cogs.events'
+]
+
+if __name__ == '__main__':
+    for extension in extensions:
+        bot.load_extension(extension)
 
 
-"""
-    Called when bot start-up has finished
-"""
 @bot.event
 async def on_ready():
+    """
+        Called when bot start-up has finished
+    """
     try:
         # Start-up messages
         print("Music Bot is Ready!")
@@ -83,15 +94,15 @@ async def on_ready():
 
 
 # -------------- Commands ------------- #
-"""
-    Command to connect to voice
-        plays song 
-            from yt link
-            from yt search
-            from yt playlist link
-"""
-@bot.command(name= 'play', help= 'Connects Bot to Voice')
+@bot.command(name='play', help='Connects Bot to Voice')
 async def play_(ctx, *link):
+    """
+        Command to connect to voice
+            plays song
+                from yt link
+                from yt search
+                from yt playlist link
+    """
     await ctx.message.delete(delay=5)
 
     # Check that author is in a voice channel
@@ -126,15 +137,15 @@ async def play_(ctx, *link):
             await play_music_(ctx)
 
 
-"""
-    Command to skip currently playing song
-"""
-@bot.command(name= 'skip', help= 'Skips to next Song in Queue')
+@bot.command(name='skip', help='Skips to next Song in Queue')
 async def skip_(ctx):
+    """
+        Command to skip currently playing song
+    """
     try:
         await ctx.message.delete(delay=5)
 
-        vc = ctx.guild.voice_client # Get current voice client
+        vc = ctx.guild.voice_client  # Get current voice client
 
         if vc is None:
             print(f"Skip: Bot not connected to {ctx.guild.name}")
@@ -165,11 +176,11 @@ async def skip_(ctx):
         pass
 
 
-"""
-    Command to clear server's Queue
-"""
-@bot.command(name= 'clear', help= 'Clears the Song Queue')
+@bot.command(name='clear', help='Clears the Song Queue')
 async def clear_(ctx):
+    """
+        Command to clear server's Queue
+    """
     try:
         await ctx.message.delete(delay=5)
 
@@ -183,11 +194,11 @@ async def clear_(ctx):
         pass
 
 
-"""
-    Command to display songs in server's Queue
-"""
-@bot.command(name= 'queue', help= 'Displays the Queue')
+@bot.command(name='queue', help='Displays the Queue')
 async def queue_(ctx):
+    """
+        Command to display songs in server's Queue
+    """
     try:
         await ctx.message.delete(delay=5)
 
@@ -203,11 +214,11 @@ async def queue_(ctx):
         pass
 
 
-"""
-    Command to display "Now Playing" message
-"""
-@bot.command(name= 'np', help= 'Displays the currently playing song')
+@bot.command(name='np', help='Displays the currently playing song')
 async def nowPlaying_(ctx):
+    """
+        Command to display "Now Playing" message
+    """
     try:
         await ctx.message.delete(delay=5)
 
@@ -225,13 +236,11 @@ async def nowPlaying_(ctx):
         pass
 
 
-
-
-"""
-    Pauses music to be resumed later
-"""
-@bot.command(name= 'pause', help= 'Pauses currently playing song')
+@bot.command(name='pause', help='Pauses currently playing song')
 async def pause_(ctx):
+    """
+        Pauses music to be resumed later
+    """
     try:
         await ctx.message.delete(delay=5)
 
@@ -251,11 +260,11 @@ async def pause_(ctx):
         pass
 
 
-"""
-    Resumes paused music
-"""
-@bot.command(name = 'resume', help= 'Resumes currently playing song')
+@bot.command(name='resume', help='Resumes currently playing song')
 async def resume_(ctx):
+    """
+        Resumes paused music
+    """
     try:
         await ctx.message.delete(delay=5)
     except discord.DiscordException:
@@ -273,11 +282,12 @@ async def resume_(ctx):
     else:
         await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-"""
-    Command to disconnect bot from voice
-"""
-@bot.command(name= 'disconnect', help= 'Disconnects from Voice')
+
+@bot.command(name='disconnect', help='Disconnects from Voice')
 async def disconnect_(ctx):
+    """
+        Command to disconnect bot from voice
+    """
     try:
         vc = ctx.guild.voice_client
 
@@ -290,12 +300,13 @@ async def disconnect_(ctx):
     except discord.DiscordException:
         pass
 
-"""
-    Command to change/display server defined prefix
-"""
-@bot.command(name= 'prefix', help= 'Changes prefix for this server')
+
+@bot.command(name='prefix', help='Changes prefix for this server')
 @commands.has_permissions(administrator=True)
 async def prefix_(ctx, *prefix):
+    """
+        Command to change/display server defined prefix
+    """
     # Parse Config, get server prefixes
     config_object = ConfigParser()
     config_object.read("config.ini")
@@ -315,11 +326,11 @@ async def prefix_(ctx, *prefix):
         await ctx.channel.send(f'Prefix for {ctx.guild.name} is: {bot_prefixes[str(ctx.guild.id)]}', delete_after=10)
 
 
-"""
-    Sends an embed with invite links to add bot to other servers.    
-"""
-@bot.command(name = 'invite', help= 'Shows invite link to add bot to your server')
+@bot.command(name='invite', help='Shows invite link to add bot to your server')
 async def invite_(ctx):
+    """
+        Sends an embed with invite links to add bot to other servers.
+    """
     try:
         await ctx.message.delete(delay=5)
     except discord.DiscordException:
@@ -328,11 +339,11 @@ async def invite_(ctx):
     await ctx.channel.send(embed=generate_invite(ctx, bot, embed_theme, invite_link))
 
 
-"""
-    Custom help command
-"""
-@bot.command(name= 'help')
+@bot.command(name='help')
 async def help_(ctx):
+    """
+        Custom help command
+    """
     try:
         await ctx.message.delete(delay=5)
     except discord.DiscordException:
@@ -342,11 +353,11 @@ async def help_(ctx):
 
 
 # --------------- Events -------------- #
-"""
-    Disconnects bot if it is alone in a voice channel
-"""
 @bot.event
 async def on_voice_state_update(member, before, after):
+    """
+        Disconnects bot if it is alone in a voice channel
+    """
     try:
         # Check if bot is alone in channel, disconnect it if so
         bot_channel = member.guild.voice_client.channel
@@ -360,11 +371,11 @@ async def on_voice_state_update(member, before, after):
         pass
 
 
-"""
-    Removes guild id and stored prefix from config.ini
-"""
 @bot.event
 async def on_guild_join(guild):
+    """
+        Removes guild id and stored prefix from config.ini
+    """
     # Parse Config, get server prefixes
     config_object = ConfigParser()
     config_object.read("config.ini")
@@ -387,11 +398,11 @@ async def on_guild_join(guild):
         config_object.write(conf)
 
 
-"""
-    Removes guild id and stored prefix from config.ini
-"""
 @bot.event
 async def on_guild_remove(guild):
+    """
+        Removes guild id and stored prefix from config.ini
+    """
     # Parse Config, get server prefixes
     config_object = ConfigParser()
     config_object.read("config.ini")
@@ -411,14 +422,14 @@ async def on_guild_remove(guild):
 
 
 # -------------- Functions ------------- #
-"""
-    Directs link to proper parse method
-    
-    Support for Apple, SoundCloud, Spotify, and YT
-    
-    returns song_info : Tuple, List, flag for if info is from youtube
-"""
 async def extract_song_info(ctx, link):
+    """
+        Directs link to proper parse method
+
+        Support for Apple, SoundCloud, Spotify, and YT
+
+        returns song_info : Tuple, List, flag for if info is from youtube
+    """
     song_info = None
     from_youtube = True
     if "https://music.apple.com" in link:
@@ -434,21 +445,21 @@ async def extract_song_info(ctx, link):
     return song_info, from_youtube
 
 
-"""
-    Converts an indeterminate length tuple to a string
-"""
 def tuple_to_string(tup):
+    """
+        Converts an indeterminate length tuple to a string
+    """
     temp = ""
     for i in tup:
         temp += i + " "
     return temp.strip()
 
 
-"""
-    Generate song queues for all servers
-        Non-Queue destructive
-"""
 def create_server_queue():
+    """
+        Generate song queues for all servers
+            Non-Queue destructive
+    """
     # Loop through guilds bot is in
     for guild in bot.guilds:
         # Get guild id
@@ -458,32 +469,33 @@ def create_server_queue():
             server_queues[g_id] = []
 
 
-"""
-    Get Server Queue from Queue Dict
-"""
 def get_queue(guild_id):
+    """
+        Get Server Queue from Queue Dict
+    """
     return server_queues[str(guild_id)]
 
 
-"""
-    Add song to Server Queue in Queue Dict
-"""
 def add_queue(guild_id, song_set):
+    """
+        Add song to Server Queue in Queue Dict
+    """
     if type(song_set) == list:
         [server_queues[str(guild_id)].append(i) for i in song_set]
     else:
         server_queues[str(guild_id)].append(song_set)
 
-"""
-    Extract info from song_info into song tuple
-    song = tuple:(string:title, 
-                      string:url, 
-                      string:web_page, 
-                      string:ctx.message.author, 
-                      int:duration, 
-                      string:thumbnail)
-"""
+
 def song_info_to_tuple(song_info, ctx):
+    """
+        Extract info from song_info into song tuple
+        song = tuple:(string:title,
+                          string:url,
+                          string:web_page,
+                          string:ctx.message.author,
+                          int:duration,
+                          string:thumbnail)
+    """
     title = song_info['title']
     url = song_info["formats"][0]["url"]
     web_page = song_info['webpage_url']
@@ -492,31 +504,33 @@ def song_info_to_tuple(song_info, ctx):
     return title, url, web_page, ctx.message.author, duration, thumbnail
 
 
-"""
-    Add song(s) to queue
-    
-    If a song is from youtube, its song info should added to the queue from youtube in the following format
-        song = tuple:(string:title, 
-                      string:url, 
-                      string:web_page, 
-                      string:ctx.message.author, 
-                      int:duration, 
-                      string:thumbnail)
-    If a song is from another source (Spotify, Soundcloud, etc.), the its song info should added to the queue from 
-    youtube in the following format
-        song = "{song title} {artist}"
-    
-        The song will then be downloaded from youtube when it is played.
-        NOTE: this means the song webpage/thumbnail url will not be available until then
-"""
 async def add_song_to_queue(ctx, song_info, from_youtube=True):
+    """
+        Add song(s) to queue
+
+        If a song is from youtube, its song info should added to the queue from youtube in the following format
+            song = tuple:(string:title,
+                          string:url,
+                          string:web_page,
+                          string:ctx.message.author,
+                          int:duration,
+                          string:thumbnail)
+        If a song is from another source (Spotify, Soundcloud, etc.), the its song info should added to the queue from
+        youtube in the following format
+            song = "{song title} {artist}"
+
+            The song will then be downloaded from youtube when it is played.
+            NOTE: this means the song webpage/thumbnail url will not be available until then
+    """
     if from_youtube:
         # If link was a playlist, loop through list of songs and add them to the queue
         if type(song_info) == list:
             song_list = [song_info_to_tuple(i, ctx) for i in song_info]
             add_queue(ctx.guild.id, song_list)
             if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
-                await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length), delete_after=40)
+                await ctx.channel.send(
+                    embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length),
+                    delete_after=40)
         # Otherwise add the single song to the queue, display message if song was added to the queue
         else:
             # Generate song tuple
@@ -524,7 +538,9 @@ async def add_song_to_queue(ctx, song_info, from_youtube=True):
 
             # Display added to queue if queue is not empty
             if len(get_queue(ctx.guild.id)) >= 1:
-                await ctx.channel.send(embed=generate_added_queue_embed(ctx, song, bot, embed_theme, queue_display_length), delete_after=40)
+                await ctx.channel.send(
+                    embed=generate_added_queue_embed(ctx, song, bot, embed_theme, queue_display_length),
+                    delete_after=40)
 
             # add song to queue for playback
             add_queue(ctx.guild.id, song)
@@ -533,13 +549,15 @@ async def add_song_to_queue(ctx, song_info, from_youtube=True):
         song_list = [i for i in song_info]
         add_queue(ctx.guild.id, song_list)
         if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
-            await ctx.channel.send(embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length), delete_after=40)
+            await ctx.channel.send(
+                embed=generate_added_queue_embed(ctx, song_list, bot, embed_theme, queue_display_length),
+                delete_after=40)
 
 
-"""
-    Get server options from config.ini
-"""
 def read_config():
+    """
+        Get server options from config.ini
+    """
     global test_song, ydl_opts, ffmpeg_opts, invite_link
 
     config_object = ConfigParser()
@@ -551,15 +569,37 @@ def read_config():
     invite_link = bot_settings["invite_link"]
 
 
-"""
-    Extract songs and artists from spotify playlist
-    convert to song list
-    
-    returns song info from youtube if its a track
-            list of strings if its a playlist:
-                    "{song title} {song artist}"
-"""
+def write_config(mode, field, key, value=None):
+    """
+    Writes/Deletes key-value pair to config.ini
+
+    :param mode:    'w' = write | 'd' = delete
+    :param field:   Config.ini field
+    :param key:     Key for value in config
+    :param value:   Value for key in config
+    :return:
+    """
+    config_object = ConfigParser()
+    config_object.read("config.ini")
+    config_field = config_object[field]
+
+    if mode == 'w':
+        config_field[str(key)] = value
+    elif mode == 'd':
+        config_field.pop(str(key))
+    else:
+        print('invalid config write mode')
+
+
 async def spotify_to_yt_dl(ctx, link):
+    """
+        Extract songs and artists from spotify playlist
+        convert to song list
+
+        returns song info from youtube if its a track
+                list of strings if its a playlist:
+                        "{song title} {song artist}"
+    """
     song_info = None
     track_flag = True
     # Check for track or playlist link
@@ -583,15 +623,15 @@ async def spotify_to_yt_dl(ctx, link):
     return song_info, track_flag
 
 
-"""
-    Extract songs and artists from soundcloud playlist
-    convert to song list
-    
-    returns song info from youtube if its a track
-            list of strings if its a playlist:
-                    "{song title} {song artist}"
-"""
 async def soundcloud_to_yt_dl(ctx, link):
+    """
+        Extract songs and artists from soundcloud playlist
+        convert to song list
+
+        returns song info from youtube if its a track
+                list of strings if its a playlist:
+                        "{song title} {song artist}"
+    """
     song_info = None
     track_flag = True
     sc_result = soundcloud.resolve(link)
@@ -612,10 +652,10 @@ async def soundcloud_to_yt_dl(ctx, link):
     return song_info, track_flag
 
 
-"""
-    Extracts info from yt link, adds song to server queue, plays song from queue.
-"""
 async def download_from_yt(ctx, link):
+    """
+        Extracts info from yt link, adds song to server queue, plays song from queue.
+    """
     # Call Youtube_DL to fetch song info
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         # DEBUG COMMAND, pass test song from config in place of link
@@ -638,10 +678,10 @@ async def download_from_yt(ctx, link):
     return song_info
 
 
-"""
-    Play songs in server's queue
-"""
 async def play_music_(ctx):
+    """
+        Play songs in server's queue
+    """
     try:
         # Get voice client
         vc = ctx.guild.voice_client
@@ -686,4 +726,4 @@ async def play_music_(ctx):
 
 
 # Run bot
-bot.run(TOKEN)
+bot.run(TOKEN, bot=True, reconnect=True)
