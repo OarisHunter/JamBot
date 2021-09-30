@@ -1,19 +1,21 @@
+# events.py
+
 """
+    Discord event handler cog
 
-    Discord event handler
-
+    @author: Pierce Thompson
 """
 
 from discord.ext import commands
-from .helpers import utils
-
+from .helpers import Utils
 
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.default_prefix = '~'
-        self.embeds = utils.Embeds(bot)
-        self.utilities = utils.Util()
+        self.embeds = Utils.Embeds(bot)
+        self.utilities = Utils.Util()
+        self.command_cog = bot.get_cog("Commands")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -39,10 +41,10 @@ class Events(commands.Cog):
         """
 
         # Set prefix of new server to default prefix
-        utils.ConfigUtil().write_config('w', 'PREFIXES', str(guild.id), self.default_prefix)
+        Utils.ConfigUtil().write_config('w', "PREFIXES", str(guild.id), self.default_prefix)
 
         # Update server queues
-        self.queues.create_server_queue()
+        self.command_cog.queues.create_server_queue()
 
         print(f"{self.bot.user.name} added to {guild.name}!")
 
@@ -54,10 +56,10 @@ class Events(commands.Cog):
             Removes guild id and stored prefix from config.ini
         """
         # remove server's prefix from config
-        utils.ConfigUtil().write_config('d', 'PREFIXES', str(guild.id))
+        Utils.ConfigUtil().write_config('d', "PREFIXES", str(guild.id))
 
         # Update server queues
-        self.queues.create_server_queue()
+        self.command_cog.queues.create_server_queue()
 
         print(f"{self.bot.user.name} removed from {guild.name}")
 

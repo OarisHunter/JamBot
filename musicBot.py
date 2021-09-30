@@ -2,10 +2,9 @@
 
 """
 Music Bot
-
     Plays YouTube linked videos in discord voice channel
 
-@author: Pierce Thompson
+    @author: Pierce Thompson
 """
 
 import os
@@ -13,12 +12,15 @@ import discord
 
 from discord.ext import commands
 from dotenv import load_dotenv
-from cogs.helpers.utils import ConfigUtil
-
+from cogs.helpers.Utils import ConfigUtil
 
 # Create member vars
 TEST_MODE = False
 config = ConfigUtil()
+extensions = [
+    'cogs.commands',
+    'cogs.events'
+]
 
 # Create Bot
 load_dotenv()
@@ -30,12 +32,6 @@ else:
     TOKEN = os.getenv('DISCORD_TOKEN')
     intents = discord.Intents.all()
     bot = commands.Bot(command_prefix=config.get_prefix, intents=intents, help_command=None)
-
-# Bot command / control extensions
-extensions = [
-    'cogs.commands',
-    'cogs.events'
-]
 
 @bot.event
 async def on_ready():
@@ -52,8 +48,9 @@ async def on_ready():
         for extension in extensions:
             bot.load_extension(extension)
 
-    except discord.DiscordException:
+    except discord.DiscordException as e:
         print("on_ready event failed.")
+        print(e)
 
 # Run bot
 bot.run(TOKEN, bot=True, reconnect=True)

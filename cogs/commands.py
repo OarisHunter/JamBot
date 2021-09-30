@@ -1,23 +1,24 @@
-"""
+# commands.py
 
+"""
     Bot commands cog
 
+    @author: Pierce Thompson
 """
 
 import ast
 import discord
 
 from discord.ext import commands
-from .helpers import utils
-
+from .helpers import Utils, SongQueue
 
 class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.queues = utils.SongQueue(bot)
-        self.utilities = utils.Util()
-        self.embeds = utils.Embeds(bot)
-        config = utils.ConfigUtil().read_config('BOT_SETTINGS')
+        self.queues = SongQueue.SongQueue(bot)
+        self.utilities = Utils.Util()
+        self.embeds = Utils.Embeds(bot)
+        config = Utils.ConfigUtil().read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
         self.ydl_opts = ast.literal_eval(config['ydl_opts'])
         self.ffmpeg_opts = ast.literal_eval(config['ffmpeg_opts'])
@@ -228,7 +229,7 @@ class Commands(commands.Cog):
         """
             Command to change/display server defined prefix
         """
-        config = utils.ConfigUtil()
+        config = Utils.ConfigUtil()
 
         # If a prefix was given, change the prefix, otherwise display the current prefix
         if prefix and len(prefix) < 2:
