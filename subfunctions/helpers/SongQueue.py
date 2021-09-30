@@ -1,10 +1,5 @@
 # SongQueue.py
 
-"""
-    Song Queue class for music bot
-
-    @author: Pierce Thompson
-"""
 import ast
 import os
 import spotipy
@@ -14,7 +9,8 @@ import youtube_dl
 
 from spotipy import SpotifyClientCredentials
 from sclib import SoundcloudAPI, Track, Playlist
-from .Utils import Util, Embeds, ConfigUtil
+from Utils import Util, Embeds, ConfigUtil
+
 
 class SongQueue:
     """
@@ -24,7 +20,7 @@ class SongQueue:
     """
     def __init__(self, bot):
         self.bot = bot
-        self.util = Util()
+        self.utilities = Util()
         self.embeds = Embeds(self.bot)
         self.server_queues = {}
         self.soundcloud = SoundcloudAPI()
@@ -90,7 +86,7 @@ class SongQueue:
         if from_youtube:
             # If link was a playlist, loop through list of songs and add them to the queue
             if type(song_info) == list:
-                song_list = [self.util.song_info_to_tuple(i, ctx) for i in song_info]
+                song_list = [self.utilities.song_info_to_tuple(i, ctx) for i in song_info]
                 self.add_queue(ctx.guild.id, song_list)
                 if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
                     await ctx.channel.send(
@@ -99,7 +95,7 @@ class SongQueue:
             # Otherwise add the single song to the queue, display message if song was added to the queue
             else:
                 # Generate song tuple
-                song = self.util.song_info_to_tuple(song_info, ctx)
+                song = self.utilities.song_info_to_tuple(song_info, ctx)
 
                 # Display added to queue if queue is not empty
                 if len(self.get_queue(ctx.guild.id)) >= 1:
@@ -134,7 +130,7 @@ class SongQueue:
                         # Replace yt searchable string in queue with yt_dl song info
                         if type(song_queue[0]) == str:
                             yt_dl = await self.download_from_yt(ctx, song_queue[0])
-                            song_queue[0] = self.util.song_info_to_tuple(yt_dl[0], ctx)
+                            song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
                         song_url = song_queue[0][1]
                         # Create FFmpeg audio stream, attach to voice client
                         vc.play(discord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))

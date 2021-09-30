@@ -12,14 +12,14 @@ import discord
 
 from discord.ext import commands
 from dotenv import load_dotenv
-from cogs.helpers.Utils import ConfigUtil
+from subfunctions.helpers.Utils import ConfigUtil
 
 # Create member vars
 TEST_MODE = False
 config = ConfigUtil()
 extensions = [
-    'cogs.commands',
-    'cogs.events'
+    'subfunctions.cogs.commands',
+    'subfunctions.cogs.events'
 ]
 
 # Create Bot
@@ -32,6 +32,7 @@ else:
     TOKEN = os.getenv('DISCORD_TOKEN')
     intents = discord.Intents.all()
     bot = commands.Bot(command_prefix=config.get_prefix, intents=intents, help_command=None)
+
 
 @bot.event
 async def on_ready():

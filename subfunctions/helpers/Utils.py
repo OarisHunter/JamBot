@@ -5,6 +5,7 @@ import math
 
 from configparser import ConfigParser
 
+
 class ConfigUtil:
     """
         Config Utility functions for music bot
