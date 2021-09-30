@@ -52,5 +52,6 @@ async def on_ready():
         print("on_ready event failed.")
         print(e)
 
-# Run bot
-bot.run(TOKEN, bot=True, reconnect=True)
+if __name__ == "__main__":
+    # Run bot
+    bot.run(TOKEN, bot=True, reconnect=True)

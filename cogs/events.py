@@ -1,15 +1,12 @@
 # events.py
 
-"""
-    Discord event handler cog
-
-    @author: Pierce Thompson
-"""
-
 from discord.ext import commands
 from .helpers import Utils
 
 class Events(commands.Cog):
+    """
+    Discord Cog for event handling
+    """
     def __init__(self, bot):
         self.bot = bot
         self.default_prefix = '~'
@@ -21,6 +18,11 @@ class Events(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         """
             Disconnects bot if it is alone in a voice channel
+
+        :param member:  discord.Member object of member whose voice state changed, automatically passed
+        :param before:  discord.VoiceState prior to change, automatically passed
+        :param after:   discord.VoiceState after change, automatically passed
+        :return:        None
         """
         try:
             # Check if bot is alone in channel, disconnect it if so
@@ -38,8 +40,10 @@ class Events(commands.Cog):
     async def on_guild_join(self, guild):
         """
             Removes guild id and stored prefix from config.ini
-        """
 
+        :param guild:   discord.Guild object, automatically passed
+        :return:        None
+        """
         # Set prefix of new server to default prefix
         Utils.ConfigUtil().write_config('w', "PREFIXES", str(guild.id), self.default_prefix)
 
@@ -54,6 +58,9 @@ class Events(commands.Cog):
     async def on_guild_remove(self, guild):
         """
             Removes guild id and stored prefix from config.ini
+
+        :param guild:   discord.Guild object, automatically passed
+        :return:        None
         """
         # remove server's prefix from config
         Utils.ConfigUtil().write_config('d', "PREFIXES", str(guild.id))
@@ -64,4 +71,5 @@ class Events(commands.Cog):
         print(f"{self.bot.user.name} removed from {guild.name}")
 
 def setup(bot):
+    # Required Function for Cog loading
     bot.add_cog(Events(bot))

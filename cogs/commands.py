@@ -1,11 +1,5 @@
 # commands.py
 
-"""
-    Bot commands cog
-
-    @author: Pierce Thompson
-"""
-
 import ast
 import discord
 
@@ -13,6 +7,9 @@ from discord.ext import commands
 from .helpers import Utils, SongQueue
 
 class Commands(commands.Cog):
+    """
+        Discord Cog for command handling
+    """
     def __init__(self, bot):
         self.bot = bot
         self.queues = SongQueue.SongQueue(bot)
@@ -32,6 +29,10 @@ class Commands(commands.Cog):
                     from yt link
                     from yt search
                     from yt playlist link
+
+        :param ctx:     Command context
+        :param link:    Given link :tuple
+        :return:        None
         """
         await ctx.message.delete(delay=5)
 
@@ -70,6 +71,9 @@ class Commands(commands.Cog):
     async def skip_(self, ctx):
         """
             Command to skip currently playing song
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -108,6 +112,9 @@ class Commands(commands.Cog):
     async def clear_(self, ctx):
         """
             Command to clear server's Queue
+
+        :param ctx:     Command context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -125,6 +132,9 @@ class Commands(commands.Cog):
     async def queue_(self, ctx):
         """
             Command to display songs in server's Queue
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -144,6 +154,9 @@ class Commands(commands.Cog):
     async def nowPlaying_(self, ctx):
         """
             Command to display "Now Playing" message
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -165,6 +178,9 @@ class Commands(commands.Cog):
     async def pause_(self, ctx):
         """
             Pauses music to be resumed later
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -188,6 +204,9 @@ class Commands(commands.Cog):
     async def resume_(self, ctx):
         """
             Resumes paused music
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -210,6 +229,9 @@ class Commands(commands.Cog):
     async def disconnect_(self, ctx):
         """
             Command to disconnect bot from voice
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             vc = ctx.guild.voice_client
@@ -228,8 +250,13 @@ class Commands(commands.Cog):
     async def prefix_(self, ctx, *prefix):
         """
             Command to change/display server defined prefix
+
+        :param ctx:     Command Context
+        :param prefix:  User entered prefix: tuple
+        :return:        None
         """
         config = Utils.ConfigUtil()
+        prefix = self.utilities.tuple_to_string(prefix)
 
         # If a prefix was given, change the prefix, otherwise display the current prefix
         if prefix and len(prefix) < 2:
@@ -248,6 +275,9 @@ class Commands(commands.Cog):
     async def invite_(self, ctx):
         """
             Sends an embed with invite links to add bot to other servers.
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -260,6 +290,9 @@ class Commands(commands.Cog):
     async def help_(self, ctx):
         """
             Custom help command
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             await ctx.message.delete(delay=5)
@@ -269,4 +302,5 @@ class Commands(commands.Cog):
         await ctx.channel.send(embed=self.embeds.generate_help(ctx))
 
 def setup(bot):
+    # Required Function for Cog loading
     bot.add_cog(Commands(bot))

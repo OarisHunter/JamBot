@@ -24,5 +24,6 @@ config_object['PREFIXES'] = {
     "138622532248010752": '~'
 }
 
-with open('config.ini', 'w') as conf:
-    config_object.write(conf)
+if __name__ == '__main__':
+    with open('config.ini', 'w') as conf:
+        config_object.write(conf)

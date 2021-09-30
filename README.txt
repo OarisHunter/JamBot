@@ -31,7 +31,7 @@ FEATURES
 
 KNOWN ISSUES
 
-    - Unable to update server queues when bot is added to server
+    - None :)
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -17,6 +17,11 @@ from sclib import SoundcloudAPI, Track, Playlist
 from .Utils import Util, Embeds, ConfigUtil
 
 class SongQueue:
+    """
+        Song Queue class for discord music bot
+
+        Handles control functions of server song queues
+    """
     def __init__(self, bot):
         self.bot = bot
         self.util = Util()

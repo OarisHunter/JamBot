@@ -1,17 +1,14 @@
 # Utils.py
 
-"""
-    Utility functions for music bot
-
-    @author: Pierce Thompson
-"""
-
 import discord
 import math
 
 from configparser import ConfigParser
 
 class ConfigUtil:
+    """
+        Config Utility functions for music bot
+    """
     def get_prefix(self, client, message):
         """
             Get prefixes from config.ini
@@ -62,6 +59,9 @@ class ConfigUtil:
             config_object.write(conf)
 
 class Util:
+    """
+        Utility functions for music bot
+    """
     @staticmethod
     def tuple_to_string(tup):
         """
@@ -93,15 +93,18 @@ class Util:
         return title, url, web_page, ctx.message.author, duration, thumbnail
 
 class Embeds:
+    """
+        Embed functions for music bot
+    """
     def __init__(self, bot):
         self.bot = bot
         self.config = ConfigUtil()
+        self.utilities = Util()
         bot_settings = self.config.read_config('BOT_SETTINGS')
         self.invite_link = bot_settings['invite_link']
         self.embed_theme = int(bot_settings['embed_theme'], 0)
         self.queue_display_length = int(bot_settings['queue_display_length'])
         self.default_prefix = bot_settings['default_prefix']
-        self.utilities = Util()
 
     def generate_np_embed(self, ctx, song: tuple):
         """
