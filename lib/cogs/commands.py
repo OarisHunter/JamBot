@@ -1,10 +1,9 @@
 # commands.py
 
-import ast
 import discord
 
 from discord.ext import commands
-from subfunctions.helpers import SongQueue, Utils
+from lib.helpers import SongQueue, Utils
 
 
 class Commands(commands.Cog):
@@ -20,8 +19,8 @@ class Commands(commands.Cog):
         # Get config values
         config = Utils.ConfigUtil().read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
-        self.ydl_opts = ast.literal_eval(config['ydl_opts'])
-        self.ffmpeg_opts = ast.literal_eval(config['ffmpeg_opts'])
+        self.ydl_opts = config['ydl_opts']
+        self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
 
     @commands.command(name='play', help='Connects Bot to Voice')

@@ -2,6 +2,7 @@
 
 import discord
 import math
+import ast
 
 from configparser import ConfigParser
 
@@ -29,13 +30,29 @@ class ConfigUtil:
         """
             Get server options from config.ini
 
+            Convert to proper types here (default is str)
+
+        :param field:   config.ini field to read and return values from
         :return:        Tuple with config values
         """
-
         config_object = ConfigParser()
         config_object.read("config.ini")
         config_field = config_object[field]
-        return config_field
+
+        config_dict = {}
+        if field == 'BOT_SETTINGS':
+            config_dict["invite_link"] = config_field['invite_link']
+            config_dict["test_song"] = config_field['test_song']
+            config_dict['ydl_opts'] = ast.literal_eval(config_field['ydl_opts'])
+            config_dict['ffmpeg_opts'] = ast.literal_eval(config_field['ffmpeg_opts'])
+            config_dict['embed_theme'] = int(config_field['embed_theme'], 0)
+            config_dict['queue_display_length'] = int(config_field['queue_display_length'])
+            config_dict['default_prefix'] = config_field['default_prefix']
+        elif field == 'PREFIXES':
+            config_dict = config_field
+        else:
+            print("Bad field passed to read_config")
+        return config_dict
 
     @staticmethod
     def write_config(mode, field, key, value=None):
@@ -112,8 +129,8 @@ class Embeds:
         # Get config values
         bot_settings = self.config.read_config('BOT_SETTINGS')
         self.invite_link = bot_settings['invite_link']
-        self.embed_theme = int(bot_settings['embed_theme'], 0)
-        self.queue_display_length = int(bot_settings['queue_display_length'])
+        self.embed_theme = bot_settings['embed_theme']
+        self.queue_display_length = bot_settings['queue_display_length']
         self.default_prefix = bot_settings['default_prefix']
 
     def generate_np_embed(self, ctx, song: tuple):

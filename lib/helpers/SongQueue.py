@@ -1,6 +1,5 @@
 # SongQueue.py
 
-import ast
 import os
 import spotipy
 import discord
@@ -9,7 +8,7 @@ import youtube_dl
 
 from spotipy import SpotifyClientCredentials
 from sclib import SoundcloudAPI, Track, Playlist
-from Utils import Util, Embeds, ConfigUtil
+from lib.helpers.Utils import Util, Embeds, ConfigUtil
 
 
 class SongQueue:
@@ -27,8 +26,8 @@ class SongQueue:
         # Get config values
         config = ConfigUtil().read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
-        self.ydl_opts = ast.literal_eval(config['ydl_opts'])
-        self.ffmpeg_opts = ast.literal_eval(config['ffmpeg_opts'])
+        self.ydl_opts = config['ydl_opts']
+        self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
 
         # Create API objects

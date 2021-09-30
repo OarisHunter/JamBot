@@ -12,14 +12,14 @@ import discord
 
 from discord.ext import commands
 from dotenv import load_dotenv
-from subfunctions.helpers.Utils import ConfigUtil
+from lib.helpers.Utils import ConfigUtil
 
 # Create member vars
 TEST_MODE = False
 config = ConfigUtil()
 extensions = [
-    'subfunctions.cogs.commands',
-    'subfunctions.cogs.events'
+    'lib.cogs.commands',
+    'lib.cogs.events'
 ]
 
 # Create Bot
@@ -39,19 +39,19 @@ async def on_ready():
     """
         Called when bot start-up has finished
     """
-    try:
-        # Start-up messages
-        print("Music Bot is Ready!")
-        print("Read bot settings from Config!")
-        for guild in bot.guilds:
-            print(f"\t{bot.user.name} has connected to {guild.owner.name}'s server | {guild.name} |")
+    # try:
+    # Start-up messages
+    print("Music Bot is Ready!")
+    print("Read bot settings from Config!")
+    for guild in bot.guilds:
+        print(f"\t{bot.user.name} has connected to {guild.owner.name}'s server | {guild.name} |")
 
-        for extension in extensions:
-            bot.load_extension(extension)
+    for extension in extensions:
+        bot.load_extension(extension)
 
-    except discord.DiscordException as e:
-        print("on_ready event failed.")
-        print(e)
+    # except discord.DiscordException as e:
+    #     print("on_ready event failed.")
+    #     print(e)
 
 if __name__ == "__main__":
     # Run bot
