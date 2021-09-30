@@ -31,8 +31,7 @@ FEATURES
 
 KNOWN ISSUES
 
-    - method documentation needed
-    - redo read config?
+    - None :)
 
 ------------------------------------------------------------------------------------------------------------------------
 
