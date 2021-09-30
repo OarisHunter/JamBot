@@ -4,14 +4,16 @@
 
 """
 
-import discord
 from discord.ext import commands
+from .helpers import utils
 
 
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.default_prefix = '~'
+        self.embeds = utils.Embeds(bot)
+        self.utilities = utils.Util()
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -35,45 +37,29 @@ class Events(commands.Cog):
         """
             Removes guild id and stored prefix from config.ini
         """
-        # Parse Config, get server prefixes
-        config_object = ConfigParser()
-        config_object.read("config.ini")
-        bot_prefixes = config_object["PREFIXES"]
 
         # Set prefix of new server to default prefix
-        bot_prefixes[str(guild.id)] = self.default_prefix
+        utils.ConfigUtil().write_config('w', 'PREFIXES', str(guild.id), self.default_prefix)
 
         # Update server queues
-        create_server_queue()
+        self.queues.create_server_queue()
 
         print(f"{self.bot.user.name} added to {guild.name}!")
-        # try:
-        await guild.system_channel.send(embed=generate_new_server_embed(guild, self.bot, embed_theme))
-        # except discord.DiscordException:
-        #     print(f"Couldn't send new server message in {guild.name}")
 
-        # Update config file
-        with open('config.ini', 'w') as conf:
-            config_object.write(conf)
+        await guild.system_channel.send(embed=self.embeds.generate_new_server_embed(guild))
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         """
             Removes guild id and stored prefix from config.ini
         """
-        # Parse Config, get server prefixes
-        config_object = ConfigParser()
-        config_object.read("config.ini")
-        bot_prefixes = config_object["PREFIXES"]
-
         # remove server's prefix from config
-        bot_prefixes.pop(str(guild.id))
+        utils.ConfigUtil().write_config('d', 'PREFIXES', str(guild.id))
 
         # Update server queues
-        create_server_queue()
+        self.queues.create_server_queue()
 
         print(f"{self.bot.user.name} removed from {guild.name}")
 
-        # Update config file
-        with open('config.ini', 'w') as conf:
-            config_object.write(conf)
+def setup(bot):
+    bot.add_cog(Events(bot))

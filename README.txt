@@ -3,6 +3,8 @@ Music Bot
 
     Plays YouTube linked videos in discord voice channel
 
+    Rewritten with Cogs!
+
 ------------------------------------------------------------------------------------------------------------------------
 
 FEATURES
@@ -29,7 +31,7 @@ FEATURES
 
 KNOWN ISSUES
 
-    - None :)
+    - Unable to update server queues when bot is added to server
 
 ------------------------------------------------------------------------------------------------------------------------
 
