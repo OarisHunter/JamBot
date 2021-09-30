@@ -1,7 +1,8 @@
 # events.py
 
 from discord.ext import commands
-from .helpers import Utils
+from subfunctions.helpers import Utils
+
 
 class Events(commands.Cog):
     """

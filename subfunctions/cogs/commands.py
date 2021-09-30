@@ -4,7 +4,8 @@ import ast
 import discord
 
 from discord.ext import commands
-from .helpers import Utils, SongQueue
+from subfunctions.helpers import SongQueue, Utils
+
 
 class Commands(commands.Cog):
     """

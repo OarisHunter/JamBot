@@ -31,7 +31,8 @@ FEATURES
 
 KNOWN ISSUES
 
-    - None :)
+    - method documentation needed
+    - redo read config?
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -44,6 +45,7 @@ TO-DO LIST
     - Shuffle queue.
     - Seek.
     - Loop.
-    - top 10 results on YT search.
+    - top 10 results on YT search. (youtube search only returns single song?)
     - Multi-skip.
-    - Apple Music support.
+    - Apple Music support. (web scraper? may not be possible without api access)
+    - Multi-threading for song queue populating. (stretch goal)
