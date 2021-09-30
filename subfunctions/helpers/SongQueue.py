@@ -23,24 +23,31 @@ class SongQueue:
         self.utilities = Util()
         self.embeds = Embeds(self.bot)
         self.server_queues = {}
-        self.soundcloud = SoundcloudAPI()
-        self.spotify = spotipy.Spotify(
-            client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
-                                                                client_secret=os.getenv('SPOTIFY_SECRET')
-                                                                )
-        )
+
+        # Get config values
         config = ConfigUtil().read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
         self.ydl_opts = ast.literal_eval(config['ydl_opts'])
         self.ffmpeg_opts = ast.literal_eval(config['ffmpeg_opts'])
         self.default_prefix = config['default_prefix']
 
+        # Create API objects
+        self.soundcloud = SoundcloudAPI()
+        self.spotify = spotipy.Spotify(
+            client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
+                                                                client_secret=os.getenv('SPOTIFY_SECRET')
+                                                                )
+        )
+
+        # Call create server queue on creation to populate object with queues for previously connected servers
         self.create_server_queue()
 
     def create_server_queue(self):
         """
             Generate song queues for all servers
                 Non-Queue destructive
+
+        :return:    None
         """
         # Loop through guilds bot is in
         for guild in self.bot.guilds:
@@ -53,12 +60,20 @@ class SongQueue:
     def get_queue(self, guild_id):
         """
             Get Server Queue from Queue Dict
+
+        :param guild_id:    guild id int
+        :return:            Guild song queue list
         """
         return self.server_queues[str(guild_id)]
 
     def add_queue(self, guild_id, song_set):
         """
+            Helper function
             Add song to Server Queue in Queue Dict
+
+        :param guild_id:    guild id int
+        :param song_set:    song tuple / list of song tuples
+        :return:            None
         """
         if type(song_set) == list:
             [self.server_queues[str(guild_id)].append(i) for i in song_set]
@@ -76,12 +91,21 @@ class SongQueue:
                               string:ctx.message.author,
                               int:duration,
                               string:thumbnail)
-            If a song is from another source (Spotify, Soundcloud, etc.), the its song info should added to the queue from
-            youtube in the following format
+            If a song is from another source (Spotify, Soundcloud, etc.), the its song info
+            should added to the queue from youtube in the following format:
                 song = "{song title} {artist}"
 
                 The song will then be downloaded from youtube when it is played.
                 NOTE: this means the song webpage/thumbnail url will not be available until then
+
+        :param ctx:             Command Context
+        :param song_info:       song info dict from youtube dl AND youtube link
+                                if link is a playlist AND youtube link
+                                    list of song info dicts from youtube dl
+                                if link is from a NON-youtube source
+                                    list of str: [f"{song title} {artist}", ...]
+        :param from_youtube:    if link was a youtube link
+        :return:                None
         """
         if from_youtube:
             # If link was a playlist, loop through list of songs and add them to the queue
@@ -117,6 +141,9 @@ class SongQueue:
     async def play_music_(self, ctx):
         """
             Play songs in server's queue
+
+        :param ctx:     Command Context
+        :return:        None
         """
         try:
             # Get voice client
@@ -165,9 +192,11 @@ class SongQueue:
             Extract songs and artists from spotify playlist
             convert to song list
 
-            returns song info from youtube if its a track
-                    list of strings if its a playlist:
-                            "{song title} {song artist}"
+        :param ctx:     Command Context
+        :param link:    link str
+        :return:        song info from youtube if its a track
+                        list of strings if its a playlist:
+                            str : "{song title} {song artist}"
         """
         song_info = None
         track_flag = True
@@ -196,9 +225,11 @@ class SongQueue:
             Extract songs and artists from soundcloud playlist
             convert to song list
 
-            returns song info from youtube if its a track
-                    list of strings if its a playlist:
-                            "{song title} {song artist}"
+        :param ctx:     Command Context
+        :param link:    link str
+        :return:        song info from youtube if its a track
+                        list of strings if its a playlist:
+                            str : "{song title} {song artist}"
         """
         song_info = None
         track_flag = True
@@ -222,6 +253,11 @@ class SongQueue:
     async def download_from_yt(self, ctx, link):
         """
             Extracts info from yt link, adds song to server queue, plays song from queue.
+
+        :param ctx:     Command Context
+        :param link:    link str
+        :return:        song info dict
+                        list of song info dicts if link is a playlist
         """
         # Call Youtube_DL to fetch song info
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
@@ -250,7 +286,9 @@ class SongQueue:
 
             Support for Apple, SoundCloud, Spotify, and YT
 
-            returns song_info : Tuple, List, flag for if info is from youtube
+        :param ctx:     Command Context
+        :param link:    link str
+        :return:        tuple, list, flag for if info is from youtube
         """
         song_info = None
         from_youtube = True

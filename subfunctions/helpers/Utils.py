@@ -13,6 +13,10 @@ class ConfigUtil:
     def get_prefix(self, client, message):
         """
             Get prefixes from config.ini
+
+        :param client:      discord.Client object, automatically passed
+        :param message:     discord.Message object
+        :return:            guild prefix str from config
         """
         prefixes = self.read_config('PREFIXES')
         # in DM messages force default prefix
@@ -42,7 +46,7 @@ class ConfigUtil:
         :param field:   Config.ini field
         :param key:     Key for value in config
         :param value:   Value for key in config
-        :return:        NULL
+        :return:        None
         """
         config_object = ConfigParser()
         config_object.read("config.ini")
@@ -79,12 +83,15 @@ class Util:
     def song_info_to_tuple(song_info, ctx):
         """
             Extract info from song_info into song tuple
-            song = tuple:(string:title,
-                              string:url,
-                              string:web_page,
-                              string:ctx.message.author,
-                              int:duration,
-                              string:thumbnail)
+
+        :param song_info:   dict from youtube_dl download
+        :param ctx:         Command Context
+        :return:            tuple:(string:title,
+                                    string:url,
+                                    string:web_page,
+                                    string:ctx.message.author,
+                                    int:duration,
+                                    string:thumbnail)
         """
         title = song_info['title']
         url = song_info["formats"][0]["url"]
@@ -101,6 +108,8 @@ class Embeds:
         self.bot = bot
         self.config = ConfigUtil()
         self.utilities = Util()
+
+        # Get config values
         bot_settings = self.config.read_config('BOT_SETTINGS')
         self.invite_link = bot_settings['invite_link']
         self.embed_theme = int(bot_settings['embed_theme'], 0)
@@ -111,7 +120,9 @@ class Embeds:
         """
             Generates embed for "Now Playing" messages
 
-            song: tuple (song_title, playback_url, webpage_url, author of request)
+        :param ctx:     Command Context
+        :param song:    tuple:(song_title, playback_url, webpage_url, author of request, duration, thumbnail)
+        :return:        Discord Embed
         """
         embed = discord.Embed(title="Now Playing", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
@@ -127,7 +138,9 @@ class Embeds:
         """
             Generates embed for "Added to Queue" messages
 
-            song: tuple (song_title, playback_url, webpage_url, author of request)
+        :param ctx:     Command Context
+        :param song:    tuple:(song_title, playback_url, webpage_url, author of request, duration, thumbnail)
+        :return:        Discord Embed
         """
         embed = discord.Embed(title="Added to Queue", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
@@ -156,7 +169,9 @@ class Embeds:
         """
             Generates embed for "Queue" messages
 
-            queue: Server song queue
+        :param ctx:     Command Context
+        :param queue:   Server queue list
+        :return:        Discord Embed
         """
         embed = discord.Embed(title="Queue", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
@@ -182,6 +197,9 @@ class Embeds:
     def generate_invite(self, ctx):
         """
             Generate invite embed
+
+        :param ctx:     Command Context
+        :return:        Discord Embed
         """
         embed = discord.Embed(title="Invite Link", url=self.invite_link, color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
@@ -195,7 +213,10 @@ class Embeds:
 
     def generate_help(self, ctx):
         """
-            Generates help embed
+            Generate help embed
+
+        :param ctx:     Command Context
+        :return:        Discord Embed
         """
         embed = discord.Embed(title="Help", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.avatar_url)
@@ -210,6 +231,9 @@ class Embeds:
     def generate_new_server_embed(self, guild):
         """
             Generate new server embed
+
+        :param guild:   Discord Guild object
+        :return:        Discord Embed
         """
         embed = discord.Embed(title="Thanks for adding Tempo!", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.avatar_url)

@@ -16,6 +16,8 @@ class Commands(commands.Cog):
         self.queues = SongQueue.SongQueue(bot)
         self.utilities = Utils.Util()
         self.embeds = Utils.Embeds(bot)
+
+        # Get config values
         config = Utils.ConfigUtil().read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
         self.ydl_opts = ast.literal_eval(config['ydl_opts'])
