@@ -12,6 +12,7 @@ class Events(commands.Cog):
         self.default_prefix = '~'
         self.embeds = Utils.Embeds(bot)
         self.utilities = Utils.Util()
+        self.config = Utils.ConfigUtil()
         self.command_cog = bot.get_cog("Commands")
 
     @commands.Cog.listener()
@@ -45,7 +46,7 @@ class Events(commands.Cog):
         :return:        None
         """
         # Set prefix of new server to default prefix
-        Utils.ConfigUtil().write_config('w', "PREFIXES", str(guild.id), self.default_prefix)
+        self.config.write_config('w', "PREFIXES", str(guild.id), self.default_prefix)
 
         # Update server queues
         self.command_cog.queues.create_server_queue()
@@ -63,7 +64,7 @@ class Events(commands.Cog):
         :return:        None
         """
         # remove server's prefix from config
-        Utils.ConfigUtil().write_config('d', "PREFIXES", str(guild.id))
+        self.config.write_config('d', "PREFIXES", str(guild.id))
 
         # Update server queues
         self.command_cog.queues.create_server_queue()
