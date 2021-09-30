@@ -8,9 +8,9 @@ Music Bot
 """
 
 import os
-import discord
+import nextcord
 
-from discord.ext import commands
+from nextcord.ext import commands
 from dotenv import load_dotenv
 from lib.helpers.Utils import ConfigUtil
 
@@ -26,11 +26,11 @@ extensions = [
 load_dotenv()
 if TEST_MODE:
     TOKEN = os.getenv('TEST_TOKEN')
-    intents = discord.Intents.all()
+    intents = nextcord.Intents.all()
     bot = commands.Bot(command_prefix="`", intents=intents, help_command=None)
 else:
     TOKEN = os.getenv('DISCORD_TOKEN')
-    intents = discord.Intents.all()
+    intents = nextcord.Intents.all()
     bot = commands.Bot(command_prefix=config.get_prefix, intents=intents, help_command=None)
 
 
@@ -49,10 +49,10 @@ async def on_ready():
         for extension in extensions:
             bot.load_extension(extension)
 
-    except discord.DiscordException as e:
+    except nextcord.DiscordException as e:
         print("on_ready event failed.")
         print(e)
 
 if __name__ == "__main__":
     # Run bot
-    bot.run(TOKEN, bot=True, reconnect=True)
+    bot.run(TOKEN, reconnect=True)

@@ -1,8 +1,8 @@
 # commands.py
 
-import discord
+import nextcord
 
-from discord.ext import commands
+from nextcord.ext import commands
 from lib.helpers import SongQueue, Utils
 
 
@@ -54,7 +54,7 @@ class Commands(commands.Cog):
             try:
                 # Connect to channel of author
                 vc = await ctx.author.voice.channel.connect()
-            except discord.DiscordException:
+            except nextcord.DiscordException:
                 # Catch error if already connected
                 vc = ctx.guild.voice_client
         else:
@@ -94,10 +94,10 @@ class Commands(commands.Cog):
 
                 # Update Voice Client source
                 try:
-                    vc.source = discord.FFmpegPCMAudio(song_queue[0][1], **self.ffmpeg_opts)
-                    vc.source = discord.PCMVolumeTransformer(vc.source)
+                    vc.source = nextcord.FFmpegPCMAudio(song_queue[0][1], **self.ffmpeg_opts)
+                    vc.source = nextcord.PCMVolumeTransformer(vc.source)
                     vc.volume = 1
-                except discord.errors.ClientException:
+                except nextcord.errors.ClientException:
                     print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
 
                 # Display now playing message
@@ -107,7 +107,7 @@ class Commands(commands.Cog):
                 vc.stop()
                 await ctx.channel.send("**Skipped a Song!**", delete_after=10)
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='clear', help='Clears the Song Queue')
@@ -127,7 +127,7 @@ class Commands(commands.Cog):
             # Send response
             await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='queue', help='Displays the Queue')
@@ -149,7 +149,7 @@ class Commands(commands.Cog):
             else:
                 await ctx.channel.send("**Queue is empty!**", delete_after=10)
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='np', help='Displays the currently playing song')
@@ -173,7 +173,7 @@ class Commands(commands.Cog):
                 print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
                 await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='pause', help='Pauses currently playing song')
@@ -199,7 +199,7 @@ class Commands(commands.Cog):
             else:
                 await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='resume', help='Resumes currently playing song')
@@ -212,7 +212,7 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
         vc = ctx.guild.voice_client
@@ -244,7 +244,7 @@ class Commands(commands.Cog):
 
             await ctx.message.delete()
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='prefix', help='Changes prefix for this server')
@@ -283,7 +283,7 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
         await ctx.channel.send(embed=self.embeds.generate_invite(ctx))
@@ -298,7 +298,7 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
         await ctx.channel.send(embed=self.embeds.generate_help(ctx))

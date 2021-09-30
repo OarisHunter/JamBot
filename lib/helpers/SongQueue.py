@@ -2,7 +2,7 @@
 
 import os
 import spotipy
-import discord
+import nextcord
 import asyncio
 import youtube_dl
 
@@ -159,14 +159,14 @@ class SongQueue:
                             song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
                         song_url = song_queue[0][1]
                         # Create FFmpeg audio stream, attach to voice client
-                        vc.play(discord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))
-                        vc.source = discord.PCMVolumeTransformer(vc.source)
+                        vc.play(nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))
+                        vc.source = nextcord.PCMVolumeTransformer(vc.source)
                         vc.volume = 1
 
                         # Display now playing message
                         await ctx.invoke(self.bot.get_command('np'))
 
-                except discord.errors.ClientException:
+                except nextcord.errors.ClientException:
                     print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
                     break
 
@@ -183,7 +183,7 @@ class SongQueue:
             if not song_queue and not vc.is_playing():
                 await ctx.invoke(self.bot.get_command('disconnect'))
 
-        except discord.DiscordException:
+        except nextcord.DiscordException:
             pass
 
     async def spotify_to_yt_dl(self, ctx, link):

@@ -1,6 +1,6 @@
 # events.py
 
-from discord.ext import commands
+from nextcord.ext import commands
 from lib.helpers import Utils
 
 
