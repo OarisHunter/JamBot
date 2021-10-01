@@ -15,8 +15,8 @@ class ConfigUtil:
         """
             Get prefixes from config.ini
 
-        :param client:      discord.Client object, automatically passed
-        :param message:     discord.Message object
+        :param client:      nextcord.Client object, automatically passed
+        :param message:     nextcord.Message object
         :return:            guild prefix str from config
         """
         prefixes = self.read_config('PREFIXES')
@@ -139,7 +139,7 @@ class Embeds:
 
         :param ctx:     Command Context
         :param song:    tuple:(song_title, playback_url, webpage_url, author of request, duration, thumbnail)
-        :return:        Discord Embed
+        :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Now Playing", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
@@ -157,7 +157,7 @@ class Embeds:
 
         :param ctx:     Command Context
         :param song:    tuple:(song_title, playback_url, webpage_url, author of request, duration, thumbnail)
-        :return:        Discord Embed
+        :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Added to Queue", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
@@ -188,7 +188,7 @@ class Embeds:
 
         :param ctx:     Command Context
         :param queue:   Server queue list
-        :return:        Discord Embed
+        :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Queue", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
@@ -216,7 +216,7 @@ class Embeds:
             Generate invite embed
 
         :param ctx:     Command Context
-        :return:        Discord Embed
+        :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Invite Link", url=self.invite_link, color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
@@ -233,7 +233,7 @@ class Embeds:
             Generate help embed
 
         :param ctx:     Command Context
-        :return:        Discord Embed
+        :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Help", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
@@ -249,8 +249,8 @@ class Embeds:
         """
             Generate new server embed
 
-        :param guild:   Discord Guild object
-        :return:        Discord Embed
+        :param guild:   nextcord Guild object
+        :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Thanks for adding Tempo!", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)

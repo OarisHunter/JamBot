@@ -6,7 +6,7 @@ from lib.helpers import Utils
 
 class Events(commands.Cog):
     """
-    Discord Cog for event handling
+    nextcord Cog for event handling
     """
     def __init__(self, bot):
         self.bot = bot
@@ -21,9 +21,9 @@ class Events(commands.Cog):
         """
             Disconnects bot if it is alone in a voice channel
 
-        :param member:  discord.Member object of member whose voice state changed, automatically passed
-        :param before:  discord.VoiceState prior to change, automatically passed
-        :param after:   discord.VoiceState after change, automatically passed
+        :param member:  nextcord.Member object of member whose voice state changed, automatically passed
+        :param before:  nextcord.VoiceState prior to change, automatically passed
+        :param after:   nextcord.VoiceState after change, automatically passed
         :return:        None
         """
         try:
@@ -43,7 +43,7 @@ class Events(commands.Cog):
         """
             Removes guild id and stored prefix from config.ini
 
-        :param guild:   discord.Guild object, automatically passed
+        :param guild:   nextcord.Guild object, automatically passed
         :return:        None
         """
         # Set prefix of new server to default prefix
@@ -61,7 +61,7 @@ class Events(commands.Cog):
         """
             Removes guild id and stored prefix from config.ini
 
-        :param guild:   discord.Guild object, automatically passed
+        :param guild:   nextcord.Guild object, automatically passed
         :return:        None
         """
         # remove server's prefix from config
