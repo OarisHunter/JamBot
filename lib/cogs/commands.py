@@ -3,7 +3,7 @@
 import nextcord
 
 from nextcord.ext import commands
-from lib.helpers import SongQueue, Utils
+from lib.helpers import SongQueue, Utils, SongSearch
 
 
 class Commands(commands.Cog):
@@ -22,6 +22,7 @@ class Commands(commands.Cog):
         self.ydl_opts = config['ydl_opts']
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
+        self.queue_display_length = config['queue_display_length']
 
     @commands.command(name='play', help='Connects Bot to Voice')
     async def play_(self, ctx, *link):
@@ -54,7 +55,7 @@ class Commands(commands.Cog):
             try:
                 # Connect to channel of author
                 vc = await ctx.author.voice.channel.connect()
-            except nextcord.nextcordException:
+            except nextcord.DiscordException:
                 # Catch error if already connected
                 vc = ctx.guild.voice_client
         else:
@@ -107,7 +108,7 @@ class Commands(commands.Cog):
                 vc.stop()
                 await ctx.channel.send("**Skipped a Song!**", delete_after=10)
 
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='clear', help='Clears the Song Queue')
@@ -127,7 +128,7 @@ class Commands(commands.Cog):
             # Send response
             await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
 
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='queue', help='Displays the Queue')
@@ -149,7 +150,7 @@ class Commands(commands.Cog):
             else:
                 await ctx.channel.send("**Queue is empty!**", delete_after=10)
 
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='np', help='Displays the currently playing song')
@@ -173,7 +174,7 @@ class Commands(commands.Cog):
                 print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
                 await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='pause', help='Pauses currently playing song')
@@ -199,7 +200,7 @@ class Commands(commands.Cog):
             else:
                 await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='resume', help='Resumes currently playing song')
@@ -212,7 +213,7 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
         vc = ctx.guild.voice_client
@@ -244,7 +245,7 @@ class Commands(commands.Cog):
 
             await ctx.message.delete()
 
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
     @commands.command(name='prefix', help='Changes prefix for this server')
@@ -283,10 +284,18 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
         await ctx.channel.send(embed=self.embeds.generate_invite(ctx))
+
+    @commands.command(name='search', help=f'Searches with given keywords, displays top results')
+    async def search(self, ctx, *keywords):
+        keywords = self.utilities.tuple_to_string(keywords)
+        search = SongSearch.SongSearch()
+        results = search.search_yt(keywords)
+
+        await ctx.channel.send(embed=self.embeds.generate_search_embed(ctx, results))
 
     @commands.command(name='help')
     async def help_(self, ctx):
@@ -298,7 +307,7 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
-        except nextcord.nextcordException:
+        except nextcord.DiscordException:
             pass
 
         await ctx.channel.send(embed=self.embeds.generate_help(ctx))
