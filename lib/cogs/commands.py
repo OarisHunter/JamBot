@@ -4,6 +4,7 @@ import nextcord
 
 from nextcord.ext import commands
 from lib.helpers import SongQueue, Utils, SongSearch
+from lib.ui import views
 
 
 class Commands(commands.Cog):
@@ -25,7 +26,7 @@ class Commands(commands.Cog):
         self.queue_display_length = config['queue_display_length']
 
     @commands.command(name='play', help='Connects Bot to Voice')
-    async def play_(self, ctx, *link):
+    async def play_(self, ctx, *, link):
         """
             Command to connect to voice
                 plays song
@@ -42,10 +43,6 @@ class Commands(commands.Cog):
         # Check that author is in a voice channel
         if ctx.author.voice is None:
             return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
-
-        # Convert command args to string
-        # allows for multi word song searches
-        link = self.utilities.tuple_to_string(link)
 
         # Pass link to parser to determine origin
         song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
@@ -290,12 +287,29 @@ class Commands(commands.Cog):
         await ctx.channel.send(embed=self.embeds.generate_invite(ctx))
 
     @commands.command(name='search', help=f'Searches with given keywords, displays top results')
-    async def search(self, ctx, *keywords):
-        keywords = self.utilities.tuple_to_string(keywords)
+    async def search(self, ctx, *, keywords):
+        """
+            Searches Youtube for given keywords, displays the top 'x' results, allows user to select from list with
+            button UI
+
+        :param ctx:         Discord message context
+        :param keywords:    User entered string
+        :return:            None
+        """
         search = SongSearch.SongSearch()
+        view = views.SearchView()
+
         results = search.search_yt(keywords)
 
-        await ctx.channel.send(embed=self.embeds.generate_search_embed(ctx, results))
+        message = await ctx.channel.send(embed=self.embeds.generate_search_embed(ctx, results),
+                                         view=view)
+
+        isTimeout = await view.wait()
+        await message.delete()
+
+        if not isTimeout:
+            selected_song = results[view.value]
+            await ctx.invoke(self.bot.get_command('play'), link=selected_song[1])
 
     @commands.command(name='help')
     async def help_(self, ctx):

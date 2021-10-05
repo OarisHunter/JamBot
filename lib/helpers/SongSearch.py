@@ -3,7 +3,7 @@
 import nextcord
 import asyncio
 
-from lib.helpers.Utils import Util, Embeds, ConfigUtil
+from lib.helpers.Utils import ConfigUtil
 from youtube_search import YoutubeSearch
 
 
@@ -22,6 +22,6 @@ class SongSearch:
     @staticmethod
     def result_to_tuple(result):
         return (result['title'],
-               "https://youtube.com" + result['url_suffix'],
+                "https://youtube.com" + result['url_suffix'],
                 result['duration'],
                 result['views'])

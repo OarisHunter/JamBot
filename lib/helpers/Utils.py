@@ -281,10 +281,10 @@ class Embeds:
 
         :param ctx:         Discord Message Context
         :param results:     Search results from SongSearch:
-                                results = list( tuple( title, url, duration, views ), ... )
+                                results = list( tuple( title, url, duration, ui ), ... )
         :return:            Discord Embed
         """
-        embed = nextcord.Embed(title="Search Results", color=self.embed_theme)
+        embed = nextcord.Embed(title="Select a Song to Play!", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
 
         for count, result in enumerate(results):
