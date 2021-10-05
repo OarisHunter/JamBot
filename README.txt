@@ -47,8 +47,6 @@ TO-DO LIST
     - Add support for slash commands.
     - Seek.
     - Loop.
-    - Queue Pages
-    - Help pages
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)
     - Remove specific song in queue

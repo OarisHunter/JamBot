@@ -183,7 +183,7 @@ class Embeds:
                 embed.set_footer(text=f"Requested by {song[0][3].name}", icon_url=song[0][3].display_avatar)
         return embed
 
-    def generate_display_queue(self, ctx, queue):
+    def generate_display_queue(self, ctx, queue, page):
         """
             Generates embed for "Queue" messages
 
@@ -193,24 +193,26 @@ class Embeds:
         """
         embed = nextcord.Embed(title="Queue", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
-        # Build message to display
-        overflow = False
-        for count, song in enumerate(queue):
-            # Cap queue display length
-            if count == self.queue_display_length:
-                overflow = True
-                break
-            # Embed link if song info is from youtube
-            if type(song) == str:
-                embed.add_field(name=f"{count + 1}: ", value=f"{song}", inline=False)
-            else:
-                embed.add_field(name=f"{count + 1}: ", value=f"[{song[0]}]({song[2]})", inline=False)
-        # Display overflow message
-        if overflow:
-            embed.set_footer(text=f"+{len(queue) - self.queue_display_length} more")
+        # Break queue into pages of length `queue_display_length`
+        queue_pages = [queue[i:i + self.queue_display_length]
+                       for i in range(0, len(queue), self.queue_display_length)]
 
-        # return embed
-        return embed
+        # Build message to display
+        for count, song in enumerate(queue_pages[page]):
+            # Embed link if song info is from youtube
+            song_num = count + 1 + (1 * (page * self.queue_display_length))
+            if type(song) == str:
+                embed.add_field(name=f"{song_num}: ",
+                                value=f"{song}",
+                                inline=False)
+            else:
+                embed.add_field(name=f"{song_num}: ",
+                                value=f"[{song[0]}]({song[2]})",
+                                inline=False)
+
+        embed.set_footer(text=f'Page {page+1}/{len(queue_pages)} --- {len(queue)} songs')
+
+        return embed, len(queue_pages)
 
     def generate_invite(self, ctx):
         """
