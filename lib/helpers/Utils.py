@@ -237,7 +237,10 @@ class Embeds:
         :param page:    Page to display
         :return:        nextcord Embed
         """
-        embed = nextcord.Embed(title="Help", color=self.embed_theme)
+        embed = nextcord.Embed(title="Help",
+                               description="<> - indicates a required argument\n"
+                                           "[] - indicates an optional argument",
+                               color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.display_avatar)
 
@@ -250,7 +253,9 @@ class Embeds:
 
         # Display commands in embed
         for i in command_pages[page]:
-            embed.add_field(name=self.config.get_prefix(ctx, ctx) + i.name, value=i.help, inline=False)
+            embed.add_field(name=f"{self.config.get_prefix(ctx, ctx)}{i.name} {i.usage}",
+                            value=i.help,
+                            inline=False)
 
         embed.set_footer(text=f'Page {page+1}/{len(command_pages)}')
 

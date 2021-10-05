@@ -34,7 +34,9 @@ FEATURES
 
 KNOWN ISSUES
 
-    - None :)
+    - Shuffle results in play removing the song that would be next in the queue
+    - Shuffle does not remove the currently playing song
+    - Does not support spotify/soundcloud albums
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -50,3 +52,4 @@ TO-DO LIST
     - Help pages
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)
+    - Remove specific song in queue

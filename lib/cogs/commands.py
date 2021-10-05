@@ -27,7 +27,9 @@ class Commands(commands.Cog):
         self.queue_display_length = config['queue_display_length']
         self.view_timeout = config['view_timeout']
 
-    @commands.command(name='play', aliases=['p'], help='Connects Bot to Voice')
+    @commands.command(name='play',
+                      help='Connects Bot to Voice',
+                      usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
     async def play_(self, ctx, *, link):
         """
             Command to connect to voice
@@ -69,7 +71,9 @@ class Commands(commands.Cog):
             if not vc.is_playing():
                 await self.queues.play_music_(ctx)
 
-    @commands.command(name='skip', help='Skips to next Song in Queue')
+    @commands.command(name='skip',
+                      help='Skips to next Song in Queue',
+                      usage="[number of songs to skip]")
     async def skip_(self, ctx, num: int = 1):
         """
             Command to skip currently playing song
@@ -116,7 +120,9 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
-    @commands.command(name='clear', help='Clears the Song Queue')
+    @commands.command(name='clear',
+                      help='Clears the Song Queue',
+                      usage='')
     async def clear_(self, ctx):
         """
             Command to clear server's Queue
@@ -136,7 +142,9 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
-    @commands.command(name='queue', help='Displays the Queue')
+    @commands.command(name='queue',
+                      help='Displays the Queue',
+                      usage='')
     async def queue_(self, ctx):
         """
             Command to display songs in server's Queue
@@ -158,7 +166,9 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
-    @commands.command(name='np', help='Displays the currently playing song')
+    @commands.command(name='np',
+                      help='Displays the currently playing song',
+                      usage='')
     async def nowPlaying_(self, ctx):
         """
             Command to display "Now Playing" message
@@ -181,7 +191,9 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
-    @commands.command(name='pause', help='Pauses currently playing song')
+    @commands.command(name='pause',
+                      help='Pauses currently playing song',
+                      usage='')
     async def pause_(self, ctx):
         """
             Pauses music to be resumed later
@@ -207,7 +219,9 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
-    @commands.command(name='resume', help='Resumes currently playing song')
+    @commands.command(name='resume',
+                      help='Resumes currently playing song',
+                      usage='')
     async def resume_(self, ctx):
         """
             Resumes paused music
@@ -232,7 +246,9 @@ class Commands(commands.Cog):
         else:
             await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-    @commands.command(name='disconnect', help='Disconnects from Voice')
+    @commands.command(name='disconnect',
+                      help='Disconnects from Voice',
+                      usage='')
     async def disconnect_(self, ctx):
         """
             Command to disconnect bot from voice
@@ -252,9 +268,11 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
-    @commands.command(name='prefix', help='Changes prefix for this server')
+    @commands.command(name='prefix',
+                      help='Displays or changes prefix for this server',
+                      usage="[new prefix]")
     @commands.has_permissions(administrator=True)
-    async def prefix_(self, ctx, *, prefix):
+    async def prefix_(self, ctx, *prefix):
         """
             Command to change/display server defined prefix
 
@@ -263,6 +281,7 @@ class Commands(commands.Cog):
         :return:        None
         """
         config = Utils.ConfigUtil()
+        prefix = self.utilities.tuple_to_string(prefix)
 
         # If a prefix was given, change the prefix, otherwise display the current prefix
         if prefix and len(prefix) < 2:
@@ -277,7 +296,9 @@ class Commands(commands.Cog):
                                    f"{config.read_config('PREFIXES')[str(ctx.guild.id)]}",
                                    delete_after=10)
 
-    @commands.command(name='invite', help='Shows invite link to add bot to your server')
+    @commands.command(name='invite',
+                      help='Shows invite link to add bot to your server',
+                      usage='')
     async def invite_(self, ctx):
         """
             Sends an embed with invite links to add bot to other servers.
@@ -292,7 +313,9 @@ class Commands(commands.Cog):
 
         await ctx.channel.send(embed=self.embeds.generate_invite(ctx))
 
-    @commands.command(name='search', help=f'Searches with given keywords, displays top results')
+    @commands.command(name='search',
+                      help=f'Searches with given keywords, displays top results',
+                      usage="<keywords to search>")
     async def search(self, ctx, *, keywords):
         """
             Searches Youtube for given keywords, displays the top 'x' results, allows user to select from list with
@@ -319,7 +342,9 @@ class Commands(commands.Cog):
             selected_song = results[view.value]
             await ctx.invoke(self.bot.get_command('play'), link=selected_song[1])
 
-    @commands.command(name='shuffle', help='Shuffles the queue')
+    @commands.command(name='shuffle',
+                      help='Shuffles the queue',
+                      usage='')
     async def shuffle_(self, ctx):
         """
             Shuffles the server song queue
