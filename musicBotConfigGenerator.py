@@ -17,7 +17,8 @@ config_object['BOT_SETTINGS'] = {
     "ffmpeg_opts": "{'options': '-vn', 'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'}",
     "embed_theme": "0xc27c0e",
     "queue_display_length": "5",
-    "default_prefix": "~"
+    "default_prefix": "~",
+    "view_timeout": "60"
 }
 
 config_object['PREFIXES'] = {
