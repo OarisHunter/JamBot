@@ -152,19 +152,6 @@ class Commands(commands.Cog):
         :param ctx:     Command Context
         :return:        None
         """
-        # try:
-        #     await ctx.message.delete(delay=5)
-        #
-        #     song_queue = self.queues.get_queue(ctx.guild.id)
-        #     if song_queue:
-        #         embed = self.embeds.generate_display_queue(ctx, song_queue)
-        #
-        #         await ctx.channel.send(embed=embed, delete_after=60)
-        #     else:
-        #         await ctx.channel.send("**Queue is empty!**", delete_after=10)
-        #
-        # except nextcord.DiscordException:
-        #     pass
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
