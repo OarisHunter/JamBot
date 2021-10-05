@@ -48,6 +48,7 @@ class ConfigUtil:
             config_dict['embed_theme'] = int(config_field['embed_theme'], 0)
             config_dict['queue_display_length'] = int(config_field['queue_display_length'])
             config_dict['default_prefix'] = config_field['default_prefix']
+            config_dict['view_timeout'] = int(config_field['view_timeout'])
         elif field == 'PREFIXES':
             config_dict = config_field
         else:
@@ -233,20 +234,25 @@ class Embeds:
             Generate help embed
 
         :param ctx:     Command Context
+        :param page:    Page to display
         :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Help", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.display_avatar)
 
-        # Generate list of command pages to be displayed
-        command_pages = [list(self.bot.commands)[i:i+self.queue_display_length]
-                         for i in range(0, len(self.bot.commands), self.queue_display_length)]
+        # Generate list of command pages to be displayed excluding help, sort by name
+        command_list = [i for i in list(self.bot.commands) if not i.name == 'help']
+        command_list = sorted(command_list, key=lambda x: x.name)
+        # Break command list into pages of length `queue_display_length`
+        command_pages = [command_list[i:i+self.queue_display_length]
+                         for i in range(0, len(command_list), self.queue_display_length)]
 
         # Display commands in embed
         for i in command_pages[page]:
-            if not i.name == 'help':
-                embed.add_field(name=self.config.get_prefix(ctx, ctx) + i.name, value=i.help, inline=False)
+            embed.add_field(name=self.config.get_prefix(ctx, ctx) + i.name, value=i.help, inline=False)
+
+        embed.set_footer(text=f'Page {page+1}/{len(command_pages)}')
 
         return embed, len(command_pages)
 

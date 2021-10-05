@@ -25,6 +25,7 @@ class Commands(commands.Cog):
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
         self.queue_display_length = config['queue_display_length']
+        self.view_timeout = config['view_timeout']
 
     @commands.command(name='play', aliases=['p'], help='Connects Bot to Voice')
     async def play_(self, ctx, *, link):
@@ -351,17 +352,9 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             pass
-        embed, num_pages = self.embeds.generate_help(ctx, 0)
-        view = views.HelpView(num_pages)
-        current_page = view.current_page
-        message = await ctx.channel.send(embed=embed, view=view)
-
-        while not view.is_finished():
-            if not view.current_page == current_page:
-                print("test")
-                current_page = view.current_page
-                embed, _ = self.embeds.generate_help(ctx, current_page)
-                await message.edit(embed=embed, view=view)
+        view = views.HelpView(self.bot, ctx, self.view_timeout)
+        await view.create_message()
+        await view.wait()
 
 def setup(bot):
     # Required Function for Cog loading
