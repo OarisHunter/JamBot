@@ -40,3 +40,26 @@ class SearchView(nextcord.ui.View):
         """
         self.value = int(interaction.data['custom_id'])
         self.stop()
+
+
+class HelpView(nextcord.ui.View):
+    def __init__(self, num_pages):
+        super().__init__()
+        self.num_pages = num_pages
+        self.current_page = 0
+
+    @nextcord.ui.button(label='<<', style=nextcord.ButtonStyle.gray)
+    async def first_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        self.current_page = 0
+
+    @nextcord.ui.button(label='<', style=nextcord.ButtonStyle.gray)
+    async def prev_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        self.current_page = (self.current_page - 1) % self.num_pages
+
+    @nextcord.ui.button(label='>', style=nextcord.ButtonStyle.gray)
+    async def next_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        self.current_page = (self.current_page + 1) % self.num_pages
+
+    @nextcord.ui.button(label='>>', style=nextcord.ButtonStyle.gray)
+    async def last_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        self.current_page = self.num_pages - 1

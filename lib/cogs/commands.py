@@ -351,8 +351,17 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             pass
+        embed, num_pages = self.embeds.generate_help(ctx, 0)
+        view = views.HelpView(num_pages)
+        current_page = view.current_page
+        message = await ctx.channel.send(embed=embed, view=view)
 
-        await ctx.channel.send(embed=self.embeds.generate_help(ctx))
+        while not view.is_finished():
+            if not view.current_page == current_page:
+                print("test")
+                current_page = view.current_page
+                embed, _ = self.embeds.generate_help(ctx, current_page)
+                await message.edit(embed=embed, view=view)
 
 def setup(bot):
     # Required Function for Cog loading
