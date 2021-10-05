@@ -26,7 +26,7 @@ class Commands(commands.Cog):
         self.default_prefix = config['default_prefix']
         self.queue_display_length = config['queue_display_length']
 
-    @commands.command(name='play', help='Connects Bot to Voice')
+    @commands.command(name='play', aliases=['p'], help='Connects Bot to Voice')
     async def play_(self, ctx, *, link):
         """
             Command to connect to voice
@@ -69,11 +69,12 @@ class Commands(commands.Cog):
                 await self.queues.play_music_(ctx)
 
     @commands.command(name='skip', help='Skips to next Song in Queue')
-    async def skip_(self, ctx):
+    async def skip_(self, ctx, num: int = 1):
         """
             Command to skip currently playing song
 
         :param ctx:     Command Context
+        :param num:     number of songs to skip
         :return:        None
         """
         try:
@@ -89,17 +90,22 @@ class Commands(commands.Cog):
             song_queue = self.queues.get_queue(ctx.guild.id)
             if len(song_queue) > 1 and vc.is_playing():
                 # Pop currently playing off queue
-                song_queue.pop(0)
+                if len(song_queue) >= num:
+                    del song_queue[0:num]
+                else:
+                    del song_queue[0]
 
                 # Update Voice Client source
-                try:
-                    vc.source = nextcord.FFmpegPCMAudio(song_queue[0][1], **self.ffmpeg_opts)
-                    vc.source = nextcord.PCMVolumeTransformer(vc.source)
-                    vc.volume = 1
-                except nextcord.errors.ClientException:
-                    print(f"ClientException: Failed to Play Song in {ctx.guild.name}")
+                # Replace yt searchable string in queue with yt_dl song info
+                if type(song_queue[0]) == str:
+                    yt_dl = await self.queues.download_from_yt(ctx, song_queue[0])
+                    song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
+                song_url = song_queue[0][1]
+                # Create FFmpeg audio stream, attach to voice client
+                vc.source = nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts)
+                vc.source = nextcord.PCMVolumeTransformer(vc.source)
+                vc.volume = 1
 
-                # Display now playing message
                 await ctx.channel.send("**Skipped a Song!**", delete_after=10)
                 await ctx.invoke(self.bot.get_command('np'))
             else:
@@ -166,7 +172,6 @@ class Commands(commands.Cog):
             song_queue = self.queues.get_queue(ctx.guild.id)
             if vc and vc.is_playing():
                 print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
-                # await ctx.channel.send(f'**Now Playing**\n\n{song_queue[0][0]}', delete_after=10)
                 await ctx.channel.send(embed=self.embeds.generate_np_embed(ctx, song_queue[0]))
             else:
                 print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
@@ -248,7 +253,7 @@ class Commands(commands.Cog):
 
     @commands.command(name='prefix', help='Changes prefix for this server')
     @commands.has_permissions(administrator=True)
-    async def prefix_(self, ctx, *prefix):
+    async def prefix_(self, ctx, *, prefix):
         """
             Command to change/display server defined prefix
 
@@ -257,7 +262,6 @@ class Commands(commands.Cog):
         :return:        None
         """
         config = Utils.ConfigUtil()
-        prefix = self.utilities.tuple_to_string(prefix)
 
         # If a prefix was given, change the prefix, otherwise display the current prefix
         if prefix and len(prefix) < 2:
@@ -292,6 +296,8 @@ class Commands(commands.Cog):
         """
             Searches Youtube for given keywords, displays the top 'x' results, allows user to select from list with
             button UI
+
+            https://open.spotify.com/playlist/19SBkYmRd5KzPGKnE5djJ6?si=423e5a9f2dbc462c
 
         :param ctx:         Discord message context
         :param keywords:    User entered string
