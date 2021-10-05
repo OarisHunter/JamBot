@@ -208,6 +208,14 @@ class SongQueue:
                          for i in playlist['tracks']['items']]
             track_flag = False
 
+        elif 'album' in link:
+            # Get album from album id
+            album = self.spotify.album(link[link.find("album/") + 6:])
+            # convert album tracks to list of youtube searchable strings
+            song_info = [f"{i['name']} {i['artists'][0]['name']}"
+                         for i in album['tracks']['items']]
+            track_flag = False
+
         elif 'track' in link:
             # Get track from track id
             track = self.spotify.track(link[link.find("track/") + 6:])
