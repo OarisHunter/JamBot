@@ -28,6 +28,7 @@ FEATURES
         NOTE: Songs added from an external playlist do not have links until they are played.
     - Search for top 5 results on YT.
     - Shuffle queue.
+    - Multi-skip.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -45,6 +46,7 @@ TO-DO LIST
     - Add support for slash commands.
     - Seek.
     - Loop.
-    - Multi-skip.
+    - Queue Pages
+    - Help pages
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)
