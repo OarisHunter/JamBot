@@ -26,6 +26,8 @@ FEATURES
     - Auto disconnect/Disconnect time-out.
     - Spotify, Soundcloud support
         NOTE: Songs added from an external playlist do not have links until they are played.
+    - Search for top 5 results on YT.
+    - Shuffle queue.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -41,10 +43,8 @@ TO-DO LIST
     - Tune message deletes to keep channels clear of commands, but keep a history of what's played.
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.
-    - Shuffle queue.
     - Seek.
     - Loop.
-    - top 10 results on YT search. (youtube search only returns single song?)
     - Multi-skip.
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)

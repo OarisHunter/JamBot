@@ -1,6 +1,7 @@
 # commands.py
 
 import nextcord
+import random
 
 from nextcord.ext import commands
 from lib.helpers import SongQueue, Utils, SongSearch
@@ -310,6 +311,27 @@ class Commands(commands.Cog):
         if not isTimeout:
             selected_song = results[view.value]
             await ctx.invoke(self.bot.get_command('play'), link=selected_song[1])
+
+    @commands.command(name='shuffle', help='Shuffles the queue')
+    async def shuffle_(self, ctx):
+        """
+            Shuffles the server song queue
+
+        :param ctx:     Discord message context
+        :return:        None
+        """
+        try:
+            await ctx.message.delete(delay=5)
+
+            song_queue = self.queues.get_queue(ctx.guild.id)
+            if song_queue:
+                random.shuffle(song_queue)
+                await ctx.channel.send(f"**Shuffled the Queue!**", delete_after=10)
+                await ctx.invoke(self.bot.get_command('queue'))
+            else:
+                await ctx.channel.send(f'Nothing in the Queue!', delete_after=10)
+        except nextcord.DiscordException:
+            pass
 
     @commands.command(name='help')
     async def help_(self, ctx):
