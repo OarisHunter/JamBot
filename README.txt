@@ -29,6 +29,7 @@ FEATURES
     - Search for top 5 results on YT.
     - Shuffle queue.
     - Multi-skip.
+    - Remove specific song in queue
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -49,4 +50,3 @@ TO-DO LIST
     - Loop.
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)
-    - Remove specific song in queue

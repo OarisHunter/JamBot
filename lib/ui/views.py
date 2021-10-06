@@ -43,6 +43,43 @@ class SearchView(nextcord.ui.View):
         self.value = int(interaction.data['custom_id'])
         self.stop()
 
+class ConfirmView(nextcord.ui.View):
+    """
+        View for Confirm/Cancel responses
+
+        Creates confirm and cancel buttons
+    """
+    def __init__(self, timeout):
+        super().__init__(timeout=timeout)
+        self.value = None
+
+    @nextcord.ui.button(label='Confirm', style=nextcord.ButtonStyle.green)
+    async def confirm_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """
+            Button to Confirm option
+
+        :param button:      nextcord.ui.Button object
+        :param interaction: nextcord.Interaction object
+        :return:            None
+        """
+        self.value = True
+        self.stop()
+
+    @nextcord.ui.button(label='Cancel', style=nextcord.ButtonStyle.red)
+    async def cancel_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        """
+            Button to Cancel option
+
+        :param button:      nextcord.ui.Button object
+        :param interaction: nextcord.Interaction object
+        :return:            None
+        """
+        self.value = False
+        self.stop()
+
+    async def on_timeout(self):
+        self.stop()
+
 class PageView(nextcord.ui.View):
     """
         Discord View that supplies page buttons to children classes.

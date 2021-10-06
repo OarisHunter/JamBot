@@ -362,6 +362,40 @@ class Commands(commands.Cog):
         except nextcord.DiscordException:
             pass
 
+    @commands.command(name='remove',
+                      help='Removes a specific song from the queue',
+                      usage='<number of song in queue>')
+    async def removesong_(self, ctx, num: int):
+        """
+            Removes a specific song from the queue
+
+        :param ctx:     Discord message context
+        :param num:     Song index of song to delete from the queue, starts at 1
+        :return:        None
+        """
+        try:
+            await ctx.message.delete(delay=5)
+
+            song_queue = self.queues.get_queue(ctx.guild.id)
+            if len(song_queue) > num - 1:
+                pending_song = song_queue[num - 1]
+                view = views.ConfirmView(self.view_timeout)
+                message = await ctx.channel.send(embed=self.embeds.generate_remove_embed(ctx, pending_song),
+                                                 view=view)
+                isTimeout = await view.wait()
+                if not isTimeout:
+                    if view.value:
+                        song_queue.pop(num - 1)
+                        await ctx.channel.send("**Song Deleted!**", delete_after=10)
+
+                    else:
+                        await ctx.channel.send("**Canceled!**", delete_after=10)
+                await message.delete()
+                await ctx.invoke(self.bot.get_command('queue'))
+
+        except nextcord.DiscordException:
+            pass
+
     @commands.command(name='help')
     async def help_(self, ctx):
         """
