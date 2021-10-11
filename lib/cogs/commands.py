@@ -353,8 +353,14 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
 
             song_queue = self.queues.get_queue(ctx.guild.id)
-            if song_queue:
+            if len(song_queue) > 1:
+                # store current song
+                temp_song = song_queue[0]
+                del song_queue[0]
+
                 random.shuffle(song_queue)
+                song_queue.insert(0, temp_song)     # add current song back into queue
+
                 await ctx.channel.send(f"**Shuffled the Queue!**", delete_after=10)
                 await ctx.invoke(self.bot.get_command('queue'))
             else:

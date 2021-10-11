@@ -35,8 +35,7 @@ FEATURES
 
 KNOWN ISSUES
 
-    - Shuffle results in play removing the song that would be next in the queue
-    - Shuffle does not remove the currently playing song
+    - None
 
 ------------------------------------------------------------------------------------------------------------------------
 

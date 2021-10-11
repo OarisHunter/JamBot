@@ -36,10 +36,12 @@ async def on_ready():
         Called when bot start-up has finished
     """
     # Start-up messages
-    print("Music Bot is Ready!")
+    print("-*-*-*-*-*-*-*-* Tempo is Ready! *-*-*-*-*-*-*-*-*-*-")
     print("Read bot settings from Config!")
+    print(f"\tConnected to {len(bot.guilds)} servers.")
+    print(f"\t{'-'*8}Guild ID{'-'*(18+3)}Guild Name{'-'*25}Guild Owner{'-'*13}")
     for guild in bot.guilds:
-        print(f"\t{bot.user.name} has connected to {guild.owner.name}'s server | {guild.name} |")
+        print(f'\t| {guild.id} | {guild.name:>34} | {guild.owner.name:>34} |')
 
     for extension in extensions:
         bot.load_extension(extension)
