@@ -21,9 +21,9 @@ class Events(commands.Cog):
         """
             Disconnects bot if it is alone in a voice channel
 
-        :param member:  nextcord.Member object of member whose voice state changed, automatically passed
-        :param before:  nextcord.VoiceState prior to change, automatically passed
-        :param after:   nextcord.VoiceState after change, automatically passed
+        :param member:  nextcord Member object of member whose voice state changed, automatically passed
+        :param before:  nextcord VoiceState prior to change, automatically passed
+        :param after:   nextcord VoiceState after change, automatically passed
         :return:        None
         """
         try:
@@ -46,8 +46,9 @@ class Events(commands.Cog):
         :param guild:   nextcord.Guild object, automatically passed
         :return:        None
         """
-        # Set prefix of new server to default prefix
-        self.config.write_config('w', "PREFIXES", str(guild.id), self.default_prefix)
+        # Set prefix of new server to default prefix and loop toggle
+        default = {'prefix': self.default_prefix, 'loop': False}
+        self.config.write_config('w', "SERVER_SETTINGS", str(guild.id), default)
 
         # Update server queues
         self.command_cog.queues.create_server_queue()
@@ -65,7 +66,7 @@ class Events(commands.Cog):
         :return:        None
         """
         # remove server's prefix from config
-        self.config.write_config('d', "PREFIXES", str(guild.id))
+        self.config.write_config('d', "SERVER_SETTINGS", str(guild.id))
 
         # Update server queues
         self.command_cog.queues.create_server_queue()
