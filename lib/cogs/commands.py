@@ -19,7 +19,8 @@ class Commands(commands.Cog):
         self.embeds = Utils.Embeds(bot)
 
         # Get config values
-        config = Utils.ConfigUtil().read_config('BOT_SETTINGS')
+        self.config_obj = Utils.ConfigUtil()
+        config = self.config_obj.read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
         self.ydl_opts = config['ydl_opts']
         self.ffmpeg_opts = config['ffmpeg_opts']
@@ -72,7 +73,7 @@ class Commands(commands.Cog):
                 await self.queues.play_music_(ctx)
 
     @commands.command(name='skip',
-                      help='Skips to next Song in Queue',
+                      help='Skips to next Song in Queue, will remove song from queue in loop mode',
                       usage="[number of songs to skip]")
     async def skip_(self, ctx, num: int = 1):
         """
@@ -271,7 +272,7 @@ class Commands(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def prefix_(self, ctx, *prefix):
         """
-            Command to change/display server defined prefix
+            Command to change/display server defined prefix, maintain loop setting
 
         :param ctx:     Command Context
         :param prefix:  User entered prefix: tuple
@@ -283,14 +284,16 @@ class Commands(commands.Cog):
         # If a prefix was given, change the prefix, otherwise display the current prefix
         if prefix and len(prefix) < 2:
             # Update config file
-            config.write_config('w', 'PREFIXES', str(ctx.guild.id), str(''.join(prefix)))
+            settings = config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]
+            settings['prefix'] = str(''.join(prefix))
+            config.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), settings)
 
             await ctx.channel.send(f"Prefix for {ctx.guild.name} has been changed to: "
-                                   f"{config.read_config('PREFIXES')[str(ctx.guild.id)]}",
+                                   f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
                                    delete_after=10)
         else:
             await ctx.channel.send(f"Prefix for {ctx.guild.name} is: "
-                                   f"{config.read_config('PREFIXES')[str(ctx.guild.id)]}",
+                                   f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
                                    delete_after=10)
 
     @commands.command(name='invite',
@@ -353,8 +356,14 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
 
             song_queue = self.queues.get_queue(ctx.guild.id)
-            if song_queue:
+            if len(song_queue) > 1:
+                # store current song
+                temp_song = song_queue[0]
+                del song_queue[0]
+
                 random.shuffle(song_queue)
+                song_queue.insert(0, temp_song)     # add current song back into queue
+
                 await ctx.channel.send(f"**Shuffled the Queue!**", delete_after=10)
                 await ctx.invoke(self.bot.get_command('queue'))
             else:
@@ -395,6 +404,29 @@ class Commands(commands.Cog):
 
         except nextcord.DiscordException:
             pass
+
+    @commands.command(name='loop',
+                      help='Toggles loop mode for the song queue',
+                      usage='')
+    async def loop_(self, ctx):
+        try:
+            await ctx.message.delete(after=5)
+        except nextcord.DiscordException:
+            pass
+
+        server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+        server = server_settings[str(ctx.guild.id)]
+
+        # Toggle server loop setting TODO: create proper loop toggle messages
+        if server['loop']:
+            server['loop'] = False
+            await ctx.channel.send('loop disabled', delete_after=10)
+
+        elif not server['loop']:
+            server['loop'] = True
+            await ctx.channel.send('loop enabled', delete_after=10)
+
+        self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
     @commands.command(name='help')
     async def help_(self, ctx):

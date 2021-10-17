@@ -24,7 +24,8 @@ class SongQueue:
         self.server_queues = {}
 
         # Get config values
-        config = ConfigUtil().read_config('BOT_SETTINGS')
+        self.config_obj = ConfigUtil()
+        config = self.config_obj.read_config('BOT_SETTINGS')
         self.test_song = config['test_song']
         self.ydl_opts = config['ydl_opts']
         self.ffmpeg_opts = config['ffmpeg_opts']
@@ -174,8 +175,14 @@ class SongQueue:
                 while vc.is_playing():
                     await asyncio.sleep(1)
 
-                # Move to next song in queue once song is finished
-                if song_queue:
+                server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+                # Move to next song in queue once song is finished if loop is disabled
+                if song_queue and not server_settings[str(ctx.guild.id)]['loop']:
+                    song_queue.pop(0)
+                # Move current song to the end of queue if loop is enabled
+                elif song_queue and server_settings[str(ctx.guild.id)]['loop']:
+                    song_temp = song_queue[0]
+                    song_queue.append(song_temp)
                     song_queue.pop(0)
 
             # Disconnect if queue is empty and bot is not playing
