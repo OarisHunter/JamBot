@@ -289,7 +289,11 @@ class Embeds:
 
         embed.set_image(url=self.bot.user.display_avatar)
 
-        embed.set_footer(text=f"{self.bot.user.name} added to {guild.name}!", icon_url=guild.icon_url)
+        guild_icon = guild.icon
+        if guild_icon:
+            embed.set_footer(text=f"{self.bot.user.name} added to {guild.name}!", icon_url=guild_icon.url)
+        else:
+            embed.set_footer(text=f"{self.bot.user.name} added to {guild.name}!")
 
         return embed
 
