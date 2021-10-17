@@ -10,7 +10,7 @@ class Events(commands.Cog):
     """
     def __init__(self, bot):
         self.bot = bot
-        self.default_prefix = '~'
+        self.default_prefix = "~"
         self.embeds = Utils.Embeds(bot)
         self.utilities = Utils.Util()
         self.config = Utils.ConfigUtil()
@@ -47,7 +47,7 @@ class Events(commands.Cog):
         :return:        None
         """
         # Set prefix of new server to default prefix and loop toggle
-        default = {'prefix': self.default_prefix, 'loop': False}
+        default = {"prefix": self.default_prefix, "loop": False}
         self.config.write_config('w', "SERVER_SETTINGS", str(guild.id), default)
 
         # Update server queues

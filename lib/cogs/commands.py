@@ -261,7 +261,7 @@ class Commands(commands.Cog):
             if vc and vc.is_connected():
                 await vc.disconnect()
 
-            await ctx.message.delete()
+            await ctx.message.delete(delay=5)
 
         except nextcord.DiscordException:
             pass
@@ -410,7 +410,7 @@ class Commands(commands.Cog):
                       usage='')
     async def loop_(self, ctx):
         try:
-            await ctx.message.delete(after=5)
+            await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             pass
 
