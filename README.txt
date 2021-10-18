@@ -29,7 +29,8 @@ FEATURES
     - Search for top 5 results on YT.
     - Shuffle queue.
     - Multi-skip.
-    - Remove specific song in queue
+    - Remove specific song in queue.
+    - Loop.
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -46,6 +47,5 @@ TO-DO LIST
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.
     - Seek.
-    - Loop.
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)
