@@ -420,12 +420,11 @@ class Commands(commands.Cog):
         # Toggle server loop setting TODO: create proper loop toggle messages
         if server['loop']:
             server['loop'] = False
-            await ctx.channel.send('loop disabled', delete_after=10)
 
         elif not server['loop']:
             server['loop'] = True
-            await ctx.channel.send('loop enabled', delete_after=10)
 
+        await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
         self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
     @commands.command(name='help')
