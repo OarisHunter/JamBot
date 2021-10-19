@@ -322,6 +322,14 @@ class Embeds:
         return embed
 
     def generate_remove_embed(self, ctx, song):
+        """
+            Generates the embed to display a removed song from the queue
+
+        :param ctx:     Discord Message Context
+        :param song:    tuple:(song_title, playback_url, webpage_url, author of request, duration, thumbnail)
+                        string of song title
+        :return:        Discord Embed
+        """
         embed = nextcord.Embed(title="Remove Song", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         if type(song) == str:
@@ -337,6 +345,14 @@ class Embeds:
         return embed
 
     def generate_loop_embed(self, ctx, loop):
+        """
+            Generates response to loop command message
+                Displays status of the loop setting
+
+        :param ctx:     Discord Message Context
+        :param loop:    Boolean
+        :return:        Discord Embed
+        """
         embed = nextcord.Embed(title='Loop', color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
 

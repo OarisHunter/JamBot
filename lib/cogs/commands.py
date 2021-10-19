@@ -409,6 +409,13 @@ class Commands(commands.Cog):
                       help='Toggles loop mode for the song queue',
                       usage='')
     async def loop_(self, ctx):
+        """
+            Toggles the loop function of the song queue,
+            preventing songs from being removed from the queue
+
+        :param ctx:     Discord Message context
+        :return:        None
+        """
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
