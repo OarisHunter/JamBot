@@ -4,7 +4,7 @@ import os
 import spotipy
 import nextcord
 import asyncio
-import youtube_dl
+import multiprocessing as mp
 
 from spotipy import SpotifyClientCredentials
 from sclib import SoundcloudAPI, Track, Playlist
@@ -21,13 +21,12 @@ class SongQueue:
         self.bot = bot
         self.utilities = Util()
         self.embeds = Embeds(self.bot)
+        self.manager = mp.Manager()
         self.server_queues = {}
 
         # Get config values
         self.config_obj = ConfigUtil()
         config = self.config_obj.read_config('BOT_SETTINGS')
-        self.test_song = config['test_song']
-        self.ydl_opts = config['ydl_opts']
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
 
@@ -156,13 +155,17 @@ class SongQueue:
                     if vc.is_connected() and not vc.is_playing():
                         # Replace yt searchable string in queue with yt_dl song info
                         if type(song_queue[0]) == str:
-                            yt_dl = await self.download_from_yt(ctx, song_queue[0])
+                            yt_dl = await self.utilities.download_from_yt(song_queue[0])
                             song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
                         song_url = song_queue[0][1]
                         # Create FFmpeg audio stream, attach to voice client
                         vc.play(nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))
                         vc.source = nextcord.PCMVolumeTransformer(vc.source)
                         vc.volume = 1
+
+                        # Update queue while playing
+                        if str in song_queue:
+                            self.create_update_processes(ctx)
 
                         # Display now playing message
                         await ctx.invoke(self.bot.get_command('np'))
@@ -227,7 +230,7 @@ class SongQueue:
             # Get track from track id
             track = self.spotify.track(link[link.find("track/") + 6:])
             # Download song info from yt and add to song info
-            yt_dl = await self.download_from_yt(ctx, f"{track['name']} {track['album']['artists'][0]['name']}")
+            yt_dl = self.utilities.download_from_yt(f"{track['name']} {track['album']['artists'][0]['name']}")
             song_info = yt_dl[0]
 
         else:
@@ -257,42 +260,13 @@ class SongQueue:
 
         elif type(sc_result) == Track:
             # Get song info from youtube and add to song info list
-            yt_dl = await self.download_from_yt(ctx, f'{sc_result.title} {sc_result.artist}')
+            yt_dl = self.utilities.download_from_yt(f'{sc_result.title} {sc_result.artist}')
             song_info = yt_dl[0]
 
         else:
             pass
         return song_info, track_flag
 
-    async def download_from_yt(self, ctx, link):
-        """
-            Extracts info from yt link, adds song to server queue, plays song from queue.
-
-        :param ctx:     Command Context
-        :param link:    link str
-        :return:        song info dict
-                        list of song info dicts if link is a playlist
-        """
-        # Call Youtube_DL to fetch song info
-        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            # DEBUG COMMAND, pass test song from config in place of link
-            if link == "DEBUG":
-                song_info = ydl.extract_info(self.test_song, download=False)
-            else:
-                song_info = ydl.extract_info(link, download=False)
-        # print(song_info)  # Debug call to see youtube_dl output
-
-        # Detect if link is a playlist
-        try:
-            if song_info['_type'] == 'playlist':
-                # If link is a playlist set song_info to a list of songs
-                song_info = song_info['entries']
-            else:
-                print(f"Link from {ctx.guild.name} is unsupported")
-        except KeyError:
-            pass
-
-        return song_info
 
     async def extract_song_info(self, ctx, link):
         """
@@ -315,5 +289,24 @@ class SongQueue:
             await ctx.channel.send("**SoundCloud Link!** This may take a moment...", delete_after=20)
             song_info, from_youtube = await self.soundcloud_to_yt_dl(ctx, link)
         else:
-            song_info = await self.download_from_yt(ctx, link)
+            song_info = self.utilities.download_from_yt(link)
         return song_info, from_youtube
+
+    def create_update_processes(self, ctx):
+        """
+            Multiple process function to update string values in the queue with proper youtube dl songs
+
+        :param ctx:     Discord command context
+        :return:        None
+        """
+        print("starting downloads")
+        queue = self.get_queue(ctx.guild.id)
+
+        return_dict = self.manager.dict()
+        processes = [mp.Process(target=self.utilities.update_with_yt,
+                                args=(ctx, queue, start, stop, count, return_dict))
+                     for count, (start, stop) in enumerate([(0, len(queue)/2), (len(queue)/2, len(queue))])]
+        for p in processes:
+            p.start()
+        print('finished downloads')
+        print(return_dict)

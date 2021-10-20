@@ -4,7 +4,7 @@ import sys
 import nextcord
 import math
 import ast
-import datetime
+import youtube_dl
 
 from configparser import ConfigParser
 
@@ -89,6 +89,12 @@ class Util:
     """
         Utility functions for music bot
     """
+    def __init__(self):
+        config_obj = ConfigUtil()
+        config = config_obj.read_config('BOT_SETTINGS')
+        self.test_song = config['test_song']
+        self.ydl_opts = config['ydl_opts']
+
     @staticmethod
     def tuple_to_string(tup):
         """
@@ -122,13 +128,41 @@ class Util:
         thumbnail = song_info["thumbnails"][-1]['url']
         return title, url, web_page, ctx.message.author, duration, thumbnail
 
-    @staticmethod
-    def log(error):
-        print("Command Error: check log for details!")
+    def download_from_yt(self, link):
+        """
+            Extracts info from yt link, adds song to server queue, plays song from queue.
 
-        with open('log.txt', 'a') as err:
-            err.write(f"Error at: {datetime.datetime.now()}\n"
-                      f"Error: {str(error)}\n")
+        :param link:    link str
+        :return:        song info dict
+                        list of song info dicts if link is a playlist
+        """
+        # Call Youtube_DL to fetch song info
+        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+            # DEBUG COMMAND, pass test song from config in place of link
+            if link == "DEBUG":
+                song_info = ydl.extract_info(self.test_song, download=False)
+            else:
+                song_info = ydl.extract_info(link, download=False)
+        # print(song_info)  # Debug call to see youtube_dl output
+
+        # Detect if link is a playlist
+        try:
+            if song_info['_type'] == 'playlist':
+                # If link is a playlist set song_info to a list of songs
+                song_info = song_info['entries']
+        except KeyError:
+            pass
+
+        return song_info
+
+    def update_with_yt(self, ctx, queue, start, stop, count, return_dict):
+        result = []
+        for i in queue[start:stop]:
+            if type(i) == str:
+                song_info = self.download_from_yt(i)
+                song = self.song_info_to_tuple(song_info, ctx)
+                result.append(song)
+        return_dict[count] = result
 
 class Embeds:
     """
@@ -375,10 +409,10 @@ class Embeds:
 
 
 if __name__ == "__main__":
-    config = ConfigUtil()
+    config_test = ConfigUtil()
 
-    bot_settings = config.read_config("BOT_SETTINGS")
-    server_settings = config.read_config("SERVER_SETTINGS")
+    bot_settings = config_test.read_config("BOT_SETTINGS")
+    server_settings = config_test.read_config("SERVER_SETTINGS")
 
     print(bot_settings, '\n')
     print("server: ", server_settings['138622532248010752'])
