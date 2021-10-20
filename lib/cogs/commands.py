@@ -450,6 +450,16 @@ class Commands(commands.Cog):
         await view.create_message()
         await view.wait()
 
+    async def cog_command_error(self, ctx, error):
+        """
+            Write command errors to log file
+
+        :param ctx:     Discord Message Context
+        :param error:   Exception
+        :return:        None
+        """
+        self.utilities.log(error)
+
 def setup(bot):
     # Required Function for Cog loading
     bot.add_cog(Commands(bot))

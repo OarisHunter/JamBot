@@ -1,8 +1,10 @@
 # Utils.py
+import sys
 
 import nextcord
 import math
 import ast
+import datetime
 
 from configparser import ConfigParser
 
@@ -119,6 +121,14 @@ class Util:
         duration = song_info['duration']
         thumbnail = song_info["thumbnails"][-1]['url']
         return title, url, web_page, ctx.message.author, duration, thumbnail
+
+    @staticmethod
+    def log(error):
+        print("Command Error: check log for details!")
+
+        with open('log.txt', 'a') as err:
+            err.write(f"Error at: {datetime.datetime.now()}\n"
+                      f"Error: {str(error)}\n")
 
 class Embeds:
     """
