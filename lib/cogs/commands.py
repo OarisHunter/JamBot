@@ -103,9 +103,10 @@ class Commands(commands.Cog):
 
                 # Update Voice Client source
                 # Replace yt searchable string in queue with yt_dl song info
-                if type(song_queue[0]) == str:
-                    yt_dl = self.utilities.download_from_yt(song_queue[0])
-                    song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
+                if len(song_queue[0]) == 2:
+                    song_title, message_author = song_queue[0]
+                    yt_dl = self.utilities.download_from_yt(song_title)
+                    song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], message_author)
                 song_url = song_queue[0][1]
                 # Create FFmpeg audio stream, attach to voice client
                 vc.source = nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts)

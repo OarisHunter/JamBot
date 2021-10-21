@@ -108,12 +108,12 @@ class Util:
         return temp.strip()
 
     @staticmethod
-    def song_info_to_tuple(song_info, ctx):
+    def song_info_to_tuple(song_info, author):
         """
             Extract info from song_info into song tuple
 
         :param song_info:   dict from youtube_dl download
-        :param ctx:         Command Context
+        :param author:      string:ctx.message.author
         :return:            tuple:(string:title,
                                     string:url,
                                     string:web_page,
@@ -126,7 +126,6 @@ class Util:
         web_page = song_info['webpage_url']
         duration = song_info['duration']
         thumbnail = song_info["thumbnails"][-1]['url']
-        author = ctx.message.author if ctx is not None else self.bot.user
         return title, url, web_page, author, duration, thumbnail
 
     def download_from_yt(self, link):
@@ -159,9 +158,9 @@ class Util:
     def update_with_yt(self, queue, start, stop):
         result = []
         for i in queue[start:stop]:
-            if type(i) == str:
-                song_info = self.download_from_yt(i)
-                song = self.song_info_to_tuple(song_info)
+            if len(i) == 2:
+                song_info = self.download_from_yt(i[0])
+                song = self.song_info_to_tuple(song_info, i[1])
                 result.append(song)
             else:
                 result.append(i)
@@ -222,8 +221,8 @@ class Embeds:
                     overflow = True
                     break
                 # Embed link if song info is from youtube
-                if type(i) == str:
-                    embed.add_field(name=f"{count + 1}: ", value=f"{i}", inline=False)
+                if len(i) == 2:
+                    embed.add_field(name=f"{count + 1}: ", value=f"{i[0]}", inline=False)
                 else:
                     embed.add_field(name=f"{count + 1}: ", value=f"[{i[0]}]({i[2]})", inline=False)
             if overflow:
@@ -250,9 +249,9 @@ class Embeds:
         for count, song in enumerate(queue_pages[page]):
             # Embed link if song info is from youtube
             song_num = count + 1 + (1 * (page * self.queue_display_length))
-            if type(song) == str:
+            if len(song) == 2:
                 embed.add_field(name=f"{song_num}: ",
-                                value=f"{song}",
+                                value=f"{song[0]}",
                                 inline=False)
             else:
                 embed.add_field(name=f"{song_num}: ",
@@ -379,7 +378,7 @@ class Embeds:
         """
         embed = nextcord.Embed(title="Remove Song", color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
-        if type(song) == str:
+        if len(song) == 2:
             embed.add_field(name=f"Remove from Queue?: ",
                             value=f"{song}",
                             inline=False)

@@ -107,7 +107,7 @@ class SongQueue:
         if from_youtube:
             # If link was a playlist, loop through list of songs and add them to the queue
             if type(song_info) == list:
-                song_list = [self.utilities.song_info_to_tuple(i, ctx) for i in song_info]
+                song_list = [self.utilities.song_info_to_tuple(i, ctx.message.author) for i in song_info]
                 self.add_queue(ctx.guild.id, song_list)
                 if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
                     await ctx.channel.send(
@@ -116,7 +116,7 @@ class SongQueue:
             # Otherwise add the single song to the queue, display message if song was added to the queue
             else:
                 # Generate song tuple
-                song = self.utilities.song_info_to_tuple(song_info, ctx)
+                song = self.utilities.song_info_to_tuple(song_info, ctx.message.author)
 
                 # Display added to queue if queue is not empty
                 if len(self.get_queue(ctx.guild.id)) >= 1:
@@ -152,9 +152,10 @@ class SongQueue:
                 try:
                     if vc.is_connected() and not vc.is_playing():
                         # Replace yt searchable string in queue with yt_dl song info
-                        if type(song_queue[0]) == str:
-                            yt_dl = self.utilities.download_from_yt(song_queue[0])
-                            song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
+                        if len(song_queue[0]) == 2:
+                            song_title, message_author = song_queue[0]
+                            yt_dl = self.utilities.download_from_yt(song_title)
+                            song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], message_author)
                         song_url = song_queue[0][1]
                         # Create FFmpeg audio stream, attach to voice client
                         vc.play(nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))
@@ -198,8 +199,9 @@ class SongQueue:
         :param ctx:     Command Context
         :param link:    link str
         :return:        song info from youtube if its a track
-                        list of strings if its a playlist:
-                            str : "{song title} {song artist}"
+                        list of tuples if its a playlist:
+                            tuple(str : "{song title} {song artist}", str : ctx.message.author)
+
         """
         song_info = None
         track_flag = True
@@ -208,7 +210,7 @@ class SongQueue:
             # Get playlist from playlist id
             playlist = self.spotify.playlist_items(link[link.find("playlist/") + 9:])
             # convert playlist tracks to list of youtube searchable strings
-            song_info = [f"{i['track']['name']} {i['track']['album']['artists'][0]['name']}"
+            song_info = [(f"{i['track']['name']} {i['track']['album']['artists'][0]['name']}", ctx.message.author)
                          for i in playlist['tracks']['items']]
             track_flag = False
 
@@ -216,7 +218,7 @@ class SongQueue:
             # Get album from album id
             album = self.spotify.album(link[link.find("album/") + 6:])
             # convert album tracks to list of youtube searchable strings
-            song_info = [f"{i['name']} {i['artists'][0]['name']}"
+            song_info = [(f"{i['name']} {i['artists'][0]['name']}", ctx.message.author)
                          for i in album['tracks']['items']]
             track_flag = False
 
@@ -239,8 +241,8 @@ class SongQueue:
         :param ctx:     Command Context
         :param link:    link str
         :return:        song info from youtube if its a track
-                        list of strings if its a playlist:
-                            str : "{song title} {song artist}"
+                        list of tuples if its a playlist:
+                            tuple(str : "{song title} {song artist}", str : ctx.message.author)
         """
         song_info = None
         track_flag = True
@@ -248,7 +250,7 @@ class SongQueue:
 
         if type(sc_result) == Playlist:
             # Convert track details into searchable youtube string
-            song_info = [f'{track.title} {track.artist}'
+            song_info = [(f'{track.title} {track.artist}', ctx.message.author)
                          for track in sc_result]
             track_flag = False
 
@@ -260,7 +262,6 @@ class SongQueue:
         else:
             pass
         return song_info, track_flag
-
 
     async def extract_song_info(self, ctx, link):
         """
