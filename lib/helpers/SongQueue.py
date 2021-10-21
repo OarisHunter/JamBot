@@ -4,7 +4,6 @@ import os
 import spotipy
 import nextcord
 import asyncio
-import multiprocessing as mp
 
 from spotipy import SpotifyClientCredentials
 from sclib import SoundcloudAPI, Track, Playlist
@@ -21,7 +20,6 @@ class SongQueue:
         self.bot = bot
         self.utilities = Util()
         self.embeds = Embeds(self.bot)
-        self.manager = mp.Manager()
         self.server_queues = {}
 
         # Get config values
@@ -155,17 +153,13 @@ class SongQueue:
                     if vc.is_connected() and not vc.is_playing():
                         # Replace yt searchable string in queue with yt_dl song info
                         if type(song_queue[0]) == str:
-                            yt_dl = await self.utilities.download_from_yt(song_queue[0])
+                            yt_dl = self.utilities.download_from_yt(song_queue[0])
                             song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
                         song_url = song_queue[0][1]
                         # Create FFmpeg audio stream, attach to voice client
                         vc.play(nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))
                         vc.source = nextcord.PCMVolumeTransformer(vc.source)
                         vc.volume = 1
-
-                        # Update queue while playing
-                        if str in song_queue:
-                            self.create_update_processes(ctx)
 
                         # Display now playing message
                         await ctx.invoke(self.bot.get_command('np'))
@@ -291,22 +285,3 @@ class SongQueue:
         else:
             song_info = self.utilities.download_from_yt(link)
         return song_info, from_youtube
-
-    def create_update_processes(self, ctx):
-        """
-            Multiple process function to update string values in the queue with proper youtube dl songs
-
-        :param ctx:     Discord command context
-        :return:        None
-        """
-        print("starting downloads")
-        queue = self.get_queue(ctx.guild.id)
-
-        return_dict = self.manager.dict()
-        processes = [mp.Process(target=self.utilities.update_with_yt,
-                                args=(ctx, queue, start, stop, count, return_dict))
-                     for count, (start, stop) in enumerate([(0, len(queue)/2), (len(queue)/2, len(queue))])]
-        for p in processes:
-            p.start()
-        print('finished downloads')
-        print(return_dict)

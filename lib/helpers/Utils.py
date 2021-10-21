@@ -126,7 +126,8 @@ class Util:
         web_page = song_info['webpage_url']
         duration = song_info['duration']
         thumbnail = song_info["thumbnails"][-1]['url']
-        return title, url, web_page, ctx.message.author, duration, thumbnail
+        author = ctx.message.author if ctx is not None else self.bot.user
+        return title, url, web_page, author, duration, thumbnail
 
     def download_from_yt(self, link):
         """
@@ -155,14 +156,16 @@ class Util:
 
         return song_info
 
-    def update_with_yt(self, ctx, queue, start, stop, count, return_dict):
+    def update_with_yt(self, queue, start, stop):
         result = []
         for i in queue[start:stop]:
             if type(i) == str:
                 song_info = self.download_from_yt(i)
-                song = self.song_info_to_tuple(song_info, ctx)
+                song = self.song_info_to_tuple(song_info)
                 result.append(song)
-        return_dict[count] = result
+            else:
+                result.append(i)
+        return result
 
 class Embeds:
     """

@@ -18,7 +18,8 @@ from lib.helpers.Utils import ConfigUtil
 config = ConfigUtil()
 extensions = [
     'lib.cogs.commands',
-    'lib.cogs.events'
+    'lib.cogs.events',
+    'lib.cogs.tasks'
 ]
 
 # Create Bot

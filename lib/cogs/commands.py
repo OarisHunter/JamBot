@@ -104,7 +104,7 @@ class Commands(commands.Cog):
                 # Update Voice Client source
                 # Replace yt searchable string in queue with yt_dl song info
                 if type(song_queue[0]) == str:
-                    yt_dl = await self.queues.download_from_yt(ctx, song_queue[0])
+                    yt_dl = self.utilities.download_from_yt(song_queue[0])
                     song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], ctx)
                 song_url = song_queue[0][1]
                 # Create FFmpeg audio stream, attach to voice client
@@ -424,7 +424,7 @@ class Commands(commands.Cog):
         server_settings = self.config_obj.read_config("SERVER_SETTINGS")
         server = server_settings[str(ctx.guild.id)]
 
-        # Toggle server loop setting TODO: create proper loop toggle messages
+        # Toggle server loop setting
         if server['loop']:
             server['loop'] = False
 
