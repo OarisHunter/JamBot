@@ -1,5 +1,4 @@
 # Utils.py
-import sys
 
 import nextcord
 import math
@@ -154,17 +153,6 @@ class Util:
             pass
 
         return song_info
-
-    def update_with_yt(self, queue, start, stop):
-        result = []
-        for i in queue[start:stop]:
-            if len(i) == 2:
-                song_info = self.download_from_yt(i[0])
-                song = self.song_info_to_tuple(song_info, i[1])
-                result.append(song)
-            else:
-                result.append(i)
-        return result
 
 class Embeds:
     """

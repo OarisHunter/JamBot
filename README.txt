@@ -49,3 +49,8 @@ TO-DO LIST
     - Seek.
     - Apple Music support. (web scraper? may not be possible without api access)
     - Multi-threading for song queue populating. (stretch goal)
+
+------------------------------------------------------------------------------------------------------------------------
+
+CREDITS
+    - Ryan Lee (Penn State Main)
