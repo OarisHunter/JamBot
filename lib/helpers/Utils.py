@@ -191,6 +191,28 @@ class Util:
             queue[0] = self.song_info_to_tuple(yt_dl[0], message_author)
         return queue[0][1]
 
+    @staticmethod
+    def calculate_duration(queue):
+        """
+            Calculate duration of Song Queue
+
+        :param queue:   Server Song Queue
+        :return:        str: "???" or Queue Duration
+        """
+        duration = 0
+        for song in queue:
+            if len(song) == 2:
+                duration = '???'
+                break
+            else:
+                duration += song[4]
+        if not duration == '???':
+            if duration < 3660: # 1 hour
+                duration = f"{math.floor(duration / 60)}min {str(math.floor(duration % 60)).rjust(2, '0')}sec"
+            else:
+                duration = f"{math.floor(duration / 3600)}hr {str(math.floor((duration / 60) % 60)).rjust(2, '0')}min"
+        return duration
+
 class Embeds:
     """
         Embed functions for music bot
@@ -285,7 +307,11 @@ class Embeds:
                                 value=f"[{song[0]}]({song[2]})",
                                 inline=False)
 
-        embed.set_footer(text=f'Page {page + 1}/{len(queue_pages)} --- {len(queue)} songs')
+        embed.set_footer(text=f'Page {page + 1}/{len(queue_pages)} '
+                              f'--- '
+                              f'{len(queue)} songs '
+                              f'--- '
+                              f'Total Duration: {self.utilities.calculate_duration(queue)}')
 
         return embed, len(queue_pages)
 
