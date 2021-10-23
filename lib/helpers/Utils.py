@@ -13,6 +13,7 @@ class ConfigUtil:
     """
         Config Utility functions for music bot
     """
+
     def get_prefix(self, client, message):
         """
             Get prefixes from config.ini
@@ -85,10 +86,12 @@ class ConfigUtil:
         with open('config.ini', 'w') as conf:
             config_object.write(conf)
 
+
 class Util:
     """
         Utility functions for music bot
     """
+
     def __init__(self):
         config_obj = ConfigUtil()
         config = config_obj.read_config('BOT_SETTINGS')
@@ -153,25 +156,45 @@ class Util:
 
         return song_info
 
-    async def get_new_queue(self, old_queue):
+    async def repopulate_queue(self, server_queue):
         """
             Iterates through server song queue and repopulates non-youtube sourced songs with youtube dl song info
 
-        :param old_queue:   Server Song Queue
-        :return:            Updated Server Song Queue
+        :param server_queue:   Server Song Queue
+        :return:               None
         """
+
         loop = asyncio.get_event_loop()
-        new_queue = [await loop.run_in_executor(None,
-                                                lambda: self.song_info_to_tuple(
-                                                                                self.download_from_yt(song[0])[0],
-                                                                                song[1]))
-                     if len(song) == 2 else song for song in old_queue]
-        return new_queue
+        for i in range(len(server_queue)):
+            try:
+                if len(server_queue[i]) == 2:
+                    old_song = server_queue[i]
+                    new_song = await loop.run_in_executor(None, lambda: self.download_from_yt(old_song[0]))
+                    new_song = self.song_info_to_tuple(new_song[0], old_song[1])
+
+                    song_index = server_queue.index(old_song)
+                    server_queue[song_index] = new_song
+            except IndexError:
+                pass
+
+    def get_first_in_queue(self, queue):
+        """
+            Gets first song in the queue, download info if necessary
+
+        :param queue:   Server song queue
+        :return:        First song in queue
+        """
+        if len(queue[0]) == 2:
+            song_title, message_author = queue[0]
+            yt_dl = self.download_from_yt(song_title)
+            queue[0] = self.song_info_to_tuple(yt_dl[0], message_author)
+        return queue[0][1]
 
 class Embeds:
     """
         Embed functions for music bot
     """
+
     def __init__(self, bot):
         self.bot = bot
         self.config = ConfigUtil()
@@ -261,7 +284,7 @@ class Embeds:
                                 value=f"[{song[0]}]({song[2]})",
                                 inline=False)
 
-        embed.set_footer(text=f'Page {page+1}/{len(queue_pages)} --- {len(queue)} songs')
+        embed.set_footer(text=f'Page {page + 1}/{len(queue_pages)} --- {len(queue)} songs')
 
         return embed, len(queue_pages)
 
@@ -301,7 +324,7 @@ class Embeds:
         command_list = [i for i in list(self.bot.commands) if not i.name == 'help']
         command_list = sorted(command_list, key=lambda x: x.name)
         # Break command list into pages of length `queue_display_length`
-        command_pages = [command_list[i:i+self.queue_display_length]
+        command_pages = [command_list[i:i + self.queue_display_length]
                          for i in range(0, len(command_list), self.queue_display_length)]
 
         # Display commands in embed
@@ -310,7 +333,7 @@ class Embeds:
                             value=i.help,
                             inline=False)
 
-        embed.set_footer(text=f'Page {page+1}/{len(command_pages)}')
+        embed.set_footer(text=f'Page {page + 1}/{len(command_pages)}')
 
         return embed, len(command_pages)
 

@@ -34,6 +34,7 @@ class Events(commands.Cog):
                 if self.bot.user in members and len(members) == 1:
                     # Disconnect bot
                     await member.guild.voice_client.disconnect()
+                    self.command_cog.queues.clear_queue(member.guild.id)
 
         except AttributeError:
             pass

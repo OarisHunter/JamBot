@@ -54,16 +54,6 @@ class SongQueue:
             if g_id not in self.server_queues:
                 self.server_queues[g_id] = []
 
-    def set_queue(self, guild_id, new_queue):
-        """
-            Replaces server song queue
-
-        :param guild_id:    Discord Guild ID
-        :param new_queue:   list: new song queue
-        :return:            None
-        """
-        self.server_queues[str(guild_id)] = new_queue
-
     def get_queue(self, guild_id):
         """
             Get Server Queue from Queue Dict
@@ -72,6 +62,15 @@ class SongQueue:
         :return:            Guild song queue list
         """
         return self.server_queues[str(guild_id)]
+
+    def clear_queue(self, guild_id):
+        """
+            Clear Guilds song queue
+
+        :param guild_id:    Discord Guild ID
+        :return:            None
+        """
+        self.server_queues[str(guild_id)].clear()
 
     def add_queue(self, guild_id, song_set):
         """
@@ -161,12 +160,7 @@ class SongQueue:
             while song_queue:
                 try:
                     if vc.is_connected() and not vc.is_playing():
-                        # Replace yt searchable string in queue with yt_dl song info
-                        if len(song_queue[0]) == 2:
-                            song_title, message_author = song_queue[0]
-                            yt_dl = self.utilities.download_from_yt(song_title)
-                            song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], message_author)
-                        song_url = song_queue[0][1]
+                        song_url = self.utilities.get_first_in_queue(song_queue)
                         # Create FFmpeg audio stream, attach to voice client
                         vc.play(nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts))
                         vc.source = nextcord.PCMVolumeTransformer(vc.source)
@@ -186,12 +180,12 @@ class SongQueue:
                 server_settings = self.config_obj.read_config("SERVER_SETTINGS")
                 # Move to next song in queue once song is finished if loop is disabled
                 if song_queue and not server_settings[str(ctx.guild.id)]['loop']:
-                    song_queue.pop(0)
+                    del song_queue[0]
                 # Move current song to the end of queue if loop is enabled
                 elif song_queue and server_settings[str(ctx.guild.id)]['loop']:
                     song_temp = song_queue[0]
                     song_queue.append(song_temp)
-                    song_queue.pop(0)
+                    del song_queue[0]
 
             # Disconnect if queue is empty and bot is not playing
             await asyncio.sleep(180)

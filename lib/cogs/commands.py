@@ -95,9 +95,6 @@ class Commands(commands.Cog):
             # Check that there is another song in the queue and the bot is currently playing
             song_queue = self.queues.get_queue(ctx.guild.id)
             if len(song_queue) > 1 and vc.is_playing():
-                # Pause to prevent stuttering
-                if vc.is_connected():
-                    vc.pause()
 
                 # Pop currently playing off queue
                 if len(song_queue) >= num:
@@ -107,19 +104,11 @@ class Commands(commands.Cog):
 
                 # Update Voice Client source
                 # Replace yt searchable string in queue with yt_dl song info
-                if len(song_queue[0]) == 2:
-                    song_title, message_author = song_queue[0]
-                    yt_dl = self.utilities.download_from_yt(song_title)
-                    song_queue[0] = self.utilities.song_info_to_tuple(yt_dl[0], message_author)
-                song_url = song_queue[0][1]
+                song_url = self.utilities.get_first_in_queue(song_queue)
                 # Create FFmpeg audio stream, attach to voice client
                 vc.source = nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts)
                 vc.source = nextcord.PCMVolumeTransformer(vc.source)
                 vc.volume = 1
-
-                # Resume to prevent sound and display desync
-                if vc.is_connected():
-                    vc.resume()
 
                 await ctx.channel.send("**Skipped a Song!**", delete_after=10)
                 await ctx.invoke(self.bot.get_command('np'))
@@ -144,7 +133,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
 
             # Empty the queue
-            self.queues.get_queue(ctx.guild.id).clear()
+            self.queues.clear_queue(ctx.guild.id)
 
             # Send response
             await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
@@ -269,6 +258,8 @@ class Commands(commands.Cog):
             # Check that the bot is connected to voice
             if vc and vc.is_connected():
                 await vc.disconnect()
+
+            self.queues.clear_queue(ctx.guild.id)
 
             await ctx.message.delete(delay=5)
 
