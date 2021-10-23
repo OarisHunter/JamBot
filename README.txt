@@ -45,7 +45,6 @@ TO-DO LIST
 
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.
-    - Seek.
     - Apple Music support. (web scraper? may not be possible without api access)
 
 ------------------------------------------------------------------------------------------------------------------------
