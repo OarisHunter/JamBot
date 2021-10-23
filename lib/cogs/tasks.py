@@ -22,7 +22,6 @@ class Tasks(commands.Cog):
             server_queue = self.commands.queues.get_queue(guild.id).copy()
             for song in server_queue:
                 if len(song) == 2:  # Song is from non-youtube source
-                    print('start')
                     # Generate new queue with updated song values
                     new_queue = await self.utilities.get_new_queue(server_queue)
                     # TODO: Check that this is still required, fixed an old bug
@@ -35,7 +34,6 @@ class Tasks(commands.Cog):
                         new_queue = new_queue[len(new_queue) - len(old_queue_len):]
 
                     self.commands.queues.set_queue(guild.id, new_queue)
-                    print('done')
                     break
 
     @update_queues.before_loop

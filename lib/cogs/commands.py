@@ -188,7 +188,6 @@ class Commands(commands.Cog):
 
             vc = ctx.message.guild.voice_client
             song_queue = self.queues.get_queue(ctx.guild.id)
-            print(song_queue)
             if vc and vc.is_playing():
                 print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
                 await ctx.channel.send(embed=self.embeds.generate_np_embed(ctx, song_queue[0]))
