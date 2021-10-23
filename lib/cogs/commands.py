@@ -95,6 +95,10 @@ class Commands(commands.Cog):
             # Check that there is another song in the queue and the bot is currently playing
             song_queue = self.queues.get_queue(ctx.guild.id)
             if len(song_queue) > 1 and vc.is_playing():
+                # Pause to prevent stuttering
+                if vc.is_connected():
+                    vc.pause()
+
                 # Pop currently playing off queue
                 if len(song_queue) >= num:
                     del song_queue[0:num]
@@ -112,6 +116,10 @@ class Commands(commands.Cog):
                 vc.source = nextcord.FFmpegPCMAudio(song_url, **self.ffmpeg_opts)
                 vc.source = nextcord.PCMVolumeTransformer(vc.source)
                 vc.volume = 1
+
+                # Resume to prevent sound and display desync
+                if vc.is_connected():
+                    vc.resume()
 
                 await ctx.channel.send("**Skipped a Song!**", delete_after=10)
                 await ctx.invoke(self.bot.get_command('np'))
@@ -180,6 +188,7 @@ class Commands(commands.Cog):
 
             vc = ctx.message.guild.voice_client
             song_queue = self.queues.get_queue(ctx.guild.id)
+            print(song_queue)
             if vc and vc.is_playing():
                 print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
                 await ctx.channel.send(embed=self.embeds.generate_np_embed(ctx, song_queue[0]))

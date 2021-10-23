@@ -54,6 +54,16 @@ class SongQueue:
             if g_id not in self.server_queues:
                 self.server_queues[g_id] = []
 
+    def set_queue(self, guild_id, new_queue):
+        """
+            Replaces server song queue
+
+        :param guild_id:    Discord Guild ID
+        :param new_queue:   list: new song queue
+        :return:            None
+        """
+        self.server_queues[str(guild_id)] = new_queue
+
     def get_queue(self, guild_id):
         """
             Get Server Queue from Queue Dict

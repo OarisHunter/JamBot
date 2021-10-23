@@ -4,6 +4,7 @@ import nextcord
 import math
 import ast
 import youtube_dl
+import asyncio
 
 from configparser import ConfigParser
 
@@ -136,11 +137,9 @@ class Util:
                         list of song info dicts if link is a playlist
         """
         # Call Youtube_DL to fetch song info
+        song_info = None
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            # DEBUG COMMAND, pass test song from config in place of link
-            if link == "DEBUG":
-                song_info = ydl.extract_info(self.test_song, download=False)
-            else:
+            while not song_info:
                 song_info = ydl.extract_info(link, download=False)
         # print(song_info)  # Debug call to see youtube_dl output
 
@@ -153,6 +152,21 @@ class Util:
             pass
 
         return song_info
+
+    async def get_new_queue(self, old_queue):
+        """
+            Iterates through server song queue and repopulates non-youtube sourced songs with youtube dl song info
+
+        :param old_queue:   Server Song Queue
+        :return:            Updated Server Song Queue
+        """
+        loop = asyncio.get_event_loop()
+        new_queue = [await loop.run_in_executor(None,
+                                                lambda: self.song_info_to_tuple(
+                                                                                self.download_from_yt(song[0])[0],
+                                                                                song[1]))
+                     if len(song) == 2 else song for song in old_queue]
+        return new_queue
 
 class Embeds:
     """
@@ -225,6 +239,7 @@ class Embeds:
 
         :param ctx:     Command Context
         :param queue:   Server queue list
+        :param page:    page of queue to display
         :return:        nextcord Embed
         """
         embed = nextcord.Embed(title="Queue", color=self.embed_theme)

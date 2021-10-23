@@ -25,7 +25,7 @@ FEATURES
     - Custom help command.
     - Auto disconnect/Disconnect time-out.
     - Spotify, Soundcloud support
-        NOTE: Songs added from an external playlist do not have links until they are played.
+        NOTE: Songs added from an external playlist do not have links until background queue update runs.
     - Search for top 5 results on YT.
     - Shuffle queue.
     - Multi-skip.
@@ -43,14 +43,9 @@ KNOWN ISSUES
 TO-DO LIST
     (Not ordered by priority)
 
-    - Tune message deletes to keep channels clear of commands, but keep a history of what's played.
     - Refactor bot for readability and efficiency.
     - Add support for slash commands.
     - Seek.
     - Apple Music support. (web scraper? may not be possible without api access)
-    - Multi-threading for song queue populating. (stretch goal)
 
 ------------------------------------------------------------------------------------------------------------------------
-
-CREDITS
-    - Ryan Lee (Penn State Main)
