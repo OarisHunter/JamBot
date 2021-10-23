@@ -159,6 +159,7 @@ class Util:
     async def repopulate_queue(self, server_queue):
         """
             Iterates through server song queue and repopulates non-youtube sourced songs with youtube dl song info
+                NOTE: In-place modification
 
         :param server_queue:   Server Song Queue
         :return:               None
@@ -169,8 +170,8 @@ class Util:
             try:
                 if len(server_queue[i]) == 2:
                     old_song = server_queue[i]
-                    new_song = await loop.run_in_executor(None, lambda: self.download_from_yt(old_song[0]))
-                    new_song = self.song_info_to_tuple(new_song[0], old_song[1])
+                    song_info = await loop.run_in_executor(None, lambda: self.download_from_yt(old_song[0]))
+                    new_song = self.song_info_to_tuple(song_info[0], old_song[1])
 
                     song_index = server_queue.index(old_song)
                     server_queue[song_index] = new_song
