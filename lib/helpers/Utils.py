@@ -8,6 +8,7 @@ import asyncio
 import spotipy
 import os
 
+from sclib import SoundcloudAPI, Track, Playlist
 from spotipy import SpotifyClientCredentials
 from configparser import ConfigParser
 
@@ -474,7 +475,7 @@ class SpotifyParser:
             client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                 client_secret=os.getenv('SPOTIFY_SECRET')))
 
-    def get_spotify_playlist(self, link):
+    def parse_playlist(self, link):
         offset = 0
         result = []
         while offset < self.sp.playlist_items(link, fields='total')['total']:
@@ -493,7 +494,7 @@ class SpotifyParser:
             offset = offset + len(response['items'])
         return result
 
-    def get_spotify_album(self, link):
+    def parse_album(self, link):
         response = self.sp.album(link)
         result = []
         for x in response['tracks']['items']:
@@ -506,7 +507,7 @@ class SpotifyParser:
                 result.append((f'{title} {artist}', self.author))
         return result
 
-    def get_spotify_track(self, link):
+    def parse_track(self, link):
         response = self.sp.track(link)
         if response['name']:
             title = response['name']
@@ -517,6 +518,22 @@ class SpotifyParser:
             song_info = Util().download_from_yt(f'{title} {artist}')
             return song_info[0], self.author
         return None
+
+class SoundcloudParser:
+    def __init__(self, author):
+        self.author = author
+        self.api = SoundcloudAPI() # never pass a Soundcloud client ID that did not come from this library
+
+    def parse_link(self, link):
+        response = self.api.resolve(link)
+
+        if type(response) == Playlist:
+            result = [(f'{track.title} {track.artist}', self.author)
+                      for track in response]
+
+        elif type(response) == Track:
+            track = f'{response.title} {response.artist}'
+            result = Util.download_from_yt(track)
 
 
 if __name__ == "__main__":

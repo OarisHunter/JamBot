@@ -1,10 +1,8 @@
 # SongQueue.py
 
-import os
 import nextcord
 import asyncio
 
-from sclib import SoundcloudAPI, Track, Playlist
 from lib.helpers.Utils import Util, Embeds, ConfigUtil, SpotifyParser
 
 
@@ -25,9 +23,6 @@ class SongQueue:
         config = self.config_obj.read_config('BOT_SETTINGS')
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
-
-        # Create API Parser objects
-        self.soundcloud = SoundcloudAPI()
 
         # Call create server queue on creation to populate object with queues for previously connected servers
         self.create_server_queue()
@@ -207,14 +202,14 @@ class SongQueue:
         parser = SpotifyParser(ctx.message.author)
         # Check for track or playlist link
         if 'playlist' in link:
-            song_info = parser.get_spotify_playlist(link)
+            song_info = parser.parse_playlist(link)
 
         elif 'album' in link:
             # Get album from album id
-            song_info = parser.get_spotify_album(link)
+            song_info = parser.parse_album(link)
 
         elif 'track' in link:
-            song_info = parser.get_spotify_track(link)
+            song_info = parser.parse_track(link)
             track_flag = True
 
         else:
