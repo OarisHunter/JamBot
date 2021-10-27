@@ -1,13 +1,11 @@
 # SongQueue.py
 
 import os
-import spotipy
 import nextcord
 import asyncio
 
-from spotipy import SpotifyClientCredentials
 from sclib import SoundcloudAPI, Track, Playlist
-from lib.helpers.Utils import Util, Embeds, ConfigUtil
+from lib.helpers.Utils import Util, Embeds, ConfigUtil, SpotifyParser
 
 
 class SongQueue:
@@ -28,13 +26,8 @@ class SongQueue:
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
 
-        # Create API objects
+        # Create API Parser objects
         self.soundcloud = SoundcloudAPI()
-        self.spotify = spotipy.Spotify(
-            client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
-                                                                client_secret=os.getenv('SPOTIFY_SECRET')
-                                                                )
-        )
 
         # Call create server queue on creation to populate object with queues for previously connected servers
         self.create_server_queue()
@@ -195,7 +188,8 @@ class SongQueue:
         except nextcord.DiscordException:
             pass
 
-    async def spotify_to_yt_dl(self, ctx, link):
+    @staticmethod
+    async def spotify_to_yt_dl(ctx, link):
         """
             Extract songs and artists from spotify playlist
             convert to song list
@@ -208,30 +202,20 @@ class SongQueue:
 
         """
         song_info = None
-        track_flag = True
+        track_flag = False
+
+        parser = SpotifyParser(ctx.message.author)
         # Check for track or playlist link
         if 'playlist' in link:
-            # Get playlist from playlist id
-            playlist = self.spotify.playlist_items(link[link.find("playlist/") + 9:])
-            # convert playlist tracks to list of youtube searchable strings
-            song_info = [(f"{i['track']['name']} {i['track']['album']['artists'][0]['name']}", ctx.message.author)
-                         for i in playlist['tracks']['items']]
-            track_flag = False
+            song_info = parser.get_spotify_playlist(link)
 
         elif 'album' in link:
             # Get album from album id
-            album = self.spotify.album(link[link.find("album/") + 6:])
-            # convert album tracks to list of youtube searchable strings
-            song_info = [(f"{i['name']} {i['artists'][0]['name']}", ctx.message.author)
-                         for i in album['tracks']['items']]
-            track_flag = False
+            song_info = parser.get_spotify_album(link)
 
         elif 'track' in link:
-            # Get track from track id
-            track = self.spotify.track(link[link.find("track/") + 6:])
-            # Download song info from yt and add to song info
-            yt_dl = self.utilities.download_from_yt(f"{track['name']} {track['album']['artists'][0]['name']}")
-            song_info = yt_dl[0]
+            song_info = parser.get_spotify_track(link)
+            track_flag = True
 
         else:
             pass

@@ -450,6 +450,10 @@ class Commands(commands.Cog):
         await view.create_message()
         await view.wait()
 
+
 def setup(bot):
     # Required Function for Cog loading
-    bot.add_cog(Commands(bot))
+    try:
+        bot.add_cog(Commands(bot))
+    except nextcord.ext.commands.errors.ExtensionAlreadyLoaded:
+        print("Extension already loaded.")

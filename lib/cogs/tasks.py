@@ -1,7 +1,10 @@
 # tasks.py
 
+import nextcord
+
 from nextcord.ext import commands, tasks
 from lib.helpers import Utils
+
 
 class Tasks(commands.Cog):
     def __init__(self, bot):
@@ -42,6 +45,10 @@ class Tasks(commands.Cog):
         """
         self.update_queues.start()
 
+
 def setup(bot):
     # Required Function for Cog loading
-    bot.add_cog(Tasks(bot))
+    try:
+        bot.add_cog(Tasks(bot))
+    except nextcord.ext.commands.errors.ExtensionAlreadyLoaded:
+        print("Extension already loaded.")

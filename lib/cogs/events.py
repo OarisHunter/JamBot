@@ -1,5 +1,7 @@
 # events.py
 
+import nextcord
+
 from nextcord.ext import commands
 from lib.helpers import Utils
 
@@ -74,6 +76,10 @@ class Events(commands.Cog):
 
         print(f"{self.bot.user.name} removed from {guild.name}")
 
+
 def setup(bot):
     # Required Function for Cog loading
-    bot.add_cog(Events(bot))
+    try:
+        bot.add_cog(Events(bot))
+    except nextcord.ext.commands.errors.ExtensionAlreadyLoaded:
+        print("Extension already loaded.")
