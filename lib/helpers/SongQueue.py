@@ -3,7 +3,7 @@
 import nextcord
 import asyncio
 
-from lib.helpers.Utils import Util, Embeds, ConfigUtil, SpotifyParser
+from lib.helpers.Utils import Util, Embeds, ConfigUtil, SpotifyParser, SoundcloudParser
 
 
 class SongQueue:
@@ -196,27 +196,12 @@ class SongQueue:
                             tuple(str : "{song title} {song artist}", str : ctx.message.author)
 
         """
-        song_info = None
-        track_flag = False
-
         parser = SpotifyParser(ctx.message.author)
-        # Check for track or playlist link
-        if 'playlist' in link:
-            song_info = parser.parse_playlist(link)
+        song_info, is_track = parser.parse_link(link)
+        return song_info, is_track
 
-        elif 'album' in link:
-            # Get album from album id
-            song_info = parser.parse_album(link)
-
-        elif 'track' in link:
-            song_info = parser.parse_track(link)
-            track_flag = True
-
-        else:
-            pass
-        return song_info, track_flag
-
-    async def soundcloud_to_yt_dl(self, ctx, link):
+    @staticmethod
+    async def soundcloud_to_yt_dl(ctx, link):
         """
             Extract songs and artists from soundcloud playlist
             convert to song list
@@ -227,23 +212,8 @@ class SongQueue:
                         list of tuples if its a playlist:
                             tuple(str : "{song title} {song artist}", str : ctx.message.author)
         """
-        song_info = None
-        track_flag = True
-        sc_result = self.soundcloud.resolve(link)
-
-        if type(sc_result) == Playlist:
-            # Convert track details into searchable youtube string
-            song_info = [(f'{track.title} {track.artist}', ctx.message.author)
-                         for track in sc_result]
-            track_flag = False
-
-        elif type(sc_result) == Track:
-            # Get song info from youtube and add to song info list
-            yt_dl = self.utilities.download_from_yt(f'{sc_result.title} {sc_result.artist}')
-            song_info = yt_dl[0]
-
-        else:
-            pass
+        parser = SoundcloudParser(ctx.message.author)
+        song_info, track_flag = parser.parse_link(link)
         return song_info, track_flag
 
     async def extract_song_info(self, ctx, link):

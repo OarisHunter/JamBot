@@ -475,6 +475,21 @@ class SpotifyParser:
             client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                 client_secret=os.getenv('SPOTIFY_SECRET')))
 
+    def parse_link(self, link):
+        is_track = False
+        # Check for track or playlist link
+        if 'playlist' in link:
+            song_info = self.parse_playlist(link)
+
+        elif 'album' in link:
+            # Get album from album id
+            song_info = self.parse_album(link)
+
+        elif 'track' in link:
+            song_info = self.parse_track(link)
+            is_track = True
+        return song_info, is_track
+
     def parse_playlist(self, link):
         offset = 0
         result = []
@@ -492,7 +507,7 @@ class SpotifyParser:
                         artist = 'song'
                     result.append((f'{title} {artist}', self.author))
             offset = offset + len(response['items'])
-        return result
+        return result, False
 
     def parse_album(self, link):
         response = self.sp.album(link)
@@ -505,7 +520,7 @@ class SpotifyParser:
                 else:
                     artist = 'song'
                 result.append((f'{title} {artist}', self.author))
-        return result
+        return result, False
 
     def parse_track(self, link):
         response = self.sp.track(link)
@@ -517,32 +532,37 @@ class SpotifyParser:
                 artist = 'song'
             song_info = Util().download_from_yt(f'{title} {artist}')
             return song_info[0], self.author
-        return None
+        return None, True
 
 class SoundcloudParser:
     def __init__(self, author):
         self.author = author
-        self.api = SoundcloudAPI() # never pass a Soundcloud client ID that did not come from this library
+        self.api = SoundcloudAPI()  # never pass a Soundcloud client ID that did not come from this library
 
     def parse_link(self, link):
         response = self.api.resolve(link)
 
+        song_info = None
+        track_flag = False
         if type(response) == Playlist:
-            result = [(f'{track.title} {track.artist}', self.author)
-                      for track in response]
+            song_info = [(f'{track.title} {track.artist}', self.author)
+                         for track in response]
 
         elif type(response) == Track:
             track = f'{response.title} {response.artist}'
-            result = Util.download_from_yt(track)
+            song_info = Util().download_from_yt(track)[0]
+            track_flag = True
+        return song_info, track_flag
 
 
 if __name__ == "__main__":
-    config_test = ConfigUtil()
+    if True:
+        config_test = ConfigUtil()
 
-    bot_settings = config_test.read_config("BOT_SETTINGS")
-    server_settings = config_test.read_config("SERVER_SETTINGS")
+        bot_settings = config_test.read_config("BOT_SETTINGS")
+        server_settings = config_test.read_config("SERVER_SETTINGS")
 
-    print(bot_settings, '\n')
-    print("server: ", server_settings['138622532248010752'])
-    print("prefix: ", server_settings['138622532248010752']['prefix'])
-    print("loop: ", server_settings['138622532248010752']['loop'])
+        print(bot_settings, '\n')
+        print("server: ", server_settings['138622532248010752'])
+        print("prefix: ", server_settings['138622532248010752']['prefix'])
+        print("loop: ", server_settings['138622532248010752']['loop'])
