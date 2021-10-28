@@ -566,3 +566,21 @@ if __name__ == "__main__":
         print("server: ", server_settings['138622532248010752'])
         print("prefix: ", server_settings['138622532248010752']['prefix'])
         print("loop: ", server_settings['138622532248010752']['loop'])
+
+    pl_link = "https://open.spotify.com/playlist/37i9dQZF1EjtfuKBxPvmiy?si=ff464c73b8bc46c1"
+    pl2_link = "https://open.spotify.com/playlist/5SpXKOLINelm5Ivr5lUvj8?si=766c534edab644c8"
+    t_link = "https://open.spotify.com/track/4AKUOaCRcoKTFnVI9LtsrN?si=rmD4jX44SjK97JnfVgZEIA"
+    a_link = "https://open.spotify.com/album/2gSVPsycPerzCuSd67ENuF?si=ZUPIW6AAQD6yHNpy056Gaw"
+
+    l = [pl_link, pl2_link, t_link, a_link]
+    parser = SpotifyParser('Phantom')
+
+    results = [parser.get_spotify_album(a_link)]
+
+    for i in results:
+        print(len(i), i)
+    print(len(results))
+
+    pl_link = "https://soundcloud.com/wearegustavo/sets/the-best-musics-of-dubstep"
+    pl2_link = "https://soundcloud.com/chrisfromnorway/sets/longest-playlist-ever"
+    t_link = "https://soundcloud.com/officialpandaeyes/panda-eyes-teminite-highscore"
