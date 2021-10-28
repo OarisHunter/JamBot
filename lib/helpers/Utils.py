@@ -217,6 +217,10 @@ class Util:
                 duration = f"{math.floor(duration / 3600)}hr {str(math.floor((duration / 60) % 60)).rjust(2, '0')}min"
         return duration
 
+    @staticmethod
+    def scrub_song_title(title):
+        return ''.join(c for c in title if (c.isalnum() or c == ' '))
+
 
 class Embeds:
     """
@@ -471,11 +475,13 @@ class Embeds:
 class SpotifyParser:
     def __init__(self, author):
         self.author = author
+        self.utilities = Util()
         self.sp = spotipy.Spotify(
             client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                 client_secret=os.getenv('SPOTIFY_SECRET')))
 
     def parse_link(self, link):
+        song_info = None
         is_track = False
         # Check for track or playlist link
         if 'playlist' in link:
@@ -500,43 +506,44 @@ class SpotifyParser:
                                               additional_types=['track'])
             for x in response['items']:
                 if x['track']['name']:
-                    title = x['track']['name']
+                    title = self.utilities.scrub_song_title(x['track']['name'])
                     if x['track']['album']['artists']:
                         artist = x['track']['album']['artists'][0]['name']
                     else:
                         artist = 'song'
                     result.append((f'{title} {artist}', self.author))
             offset = offset + len(response['items'])
-        return result, False
+        return result
 
     def parse_album(self, link):
         response = self.sp.album(link)
         result = []
         for x in response['tracks']['items']:
             if x['name']:
-                title = x['name']
+                title = self.utilities.scrub_song_title(x['name'])
                 if x['artists']:
                     artist = x['artists'][0]['name']
                 else:
                     artist = 'song'
                 result.append((f'{title} {artist}', self.author))
-        return result, False
+        return result
 
     def parse_track(self, link):
         response = self.sp.track(link)
         if response['name']:
-            title = response['name']
+            title = self.utilities.scrub_song_title(response['name'])
             if response['album']['artists']:
                 artist = response['album']['artists'][0]['name']
             else:
                 artist = 'song'
             song_info = Util().download_from_yt(f'{title} {artist}')
-            return song_info[0], self.author
-        return None, True
+            return song_info[0]
+        return None
 
 class SoundcloudParser:
     def __init__(self, author):
         self.author = author
+        self.utilities = Util()
         self.api = SoundcloudAPI()  # never pass a Soundcloud client ID that did not come from this library
 
     def parse_link(self, link):
@@ -545,11 +552,11 @@ class SoundcloudParser:
         song_info = None
         track_flag = False
         if type(response) == Playlist:
-            song_info = [(f'{track.title} {track.artist}', self.author)
+            song_info = [(f'{self.utilities.scrub_song_title(track.title)} {track.artist}', self.author)
                          for track in response]
 
         elif type(response) == Track:
-            track = f'{response.title} {response.artist}'
+            track = f'{self.utilities.scrub_song_title(response.title)} {response.artist}'
             song_info = Util().download_from_yt(track)[0]
             track_flag = True
         return song_info, track_flag
