@@ -219,6 +219,12 @@ class Util:
 
     @staticmethod
     def scrub_song_title(title):
+        """
+            Removes invalid characters from song title strings
+
+        :param title:   Song Title string
+        :return:        Scrubed song title string
+        """
         return ''.join(c for c in title if (c.isalnum() or c == ' '))
 
 
@@ -473,6 +479,9 @@ class Embeds:
 
 
 class SpotifyParser:
+    """
+        Spotify request parsing wrapper
+    """
     def __init__(self, author):
         self.author = author
         self.utilities = Util()
@@ -481,6 +490,12 @@ class SpotifyParser:
                                                                 client_secret=os.getenv('SPOTIFY_SECRET')))
 
     def parse_link(self, link):
+        """
+            Wrapper to pass link to correct parsing type
+
+        :param link:    spotify link string
+        :return:        song info tuple and boolean for if link was a track
+        """
         song_info = None
         is_track = False
         # Check for track or playlist link
@@ -497,6 +512,12 @@ class SpotifyParser:
         return song_info, is_track
 
     def parse_playlist(self, link):
+        """
+            Parses spotify playlist
+
+        :param link:    Spotify link
+        :return:        list[tuple(title, message author),...]
+        """
         offset = 0
         result = []
         while offset < self.sp.playlist_items(link, fields='total')['total']:
@@ -516,6 +537,12 @@ class SpotifyParser:
         return result
 
     def parse_album(self, link):
+        """
+            Parses spotify album
+
+        :param link:    Spotify link
+        :return:        list[tuple(title, message author),...]
+        """
         response = self.sp.album(link)
         result = []
         for x in response['tracks']['items']:
@@ -529,6 +556,12 @@ class SpotifyParser:
         return result
 
     def parse_track(self, link):
+        """
+            Parses spotify track
+
+        :param link:    Spotify link
+        :return:        downloaded song info from youtube dl
+        """
         response = self.sp.track(link)
         if response['name']:
             title = self.utilities.scrub_song_title(response['name'])
@@ -541,12 +574,23 @@ class SpotifyParser:
         return None
 
 class SoundcloudParser:
+    """
+        Soundcloud request parsing wrapper
+    """
     def __init__(self, author):
         self.author = author
         self.utilities = Util()
         self.api = SoundcloudAPI()  # never pass a Soundcloud client ID that did not come from this library
 
     def parse_link(self, link):
+        """
+            Parses soundcloud link
+
+        :param link:    Soundcloud link
+        :return:        song info tuple
+                            list[tuple("title artist", message author),...] if link was a playlist
+                            downloaded song info from youtube if link was a track
+        """
         response = self.api.resolve(link)
 
         song_info = None
@@ -560,34 +604,3 @@ class SoundcloudParser:
             song_info = Util().download_from_yt(track)[0]
             track_flag = True
         return song_info, track_flag
-
-
-if __name__ == "__main__":
-    if True:
-        config_test = ConfigUtil()
-
-        bot_settings = config_test.read_config("BOT_SETTINGS")
-        server_settings = config_test.read_config("SERVER_SETTINGS")
-
-        print(bot_settings, '\n')
-        print("server: ", server_settings['138622532248010752'])
-        print("prefix: ", server_settings['138622532248010752']['prefix'])
-        print("loop: ", server_settings['138622532248010752']['loop'])
-
-    pl_link = "https://open.spotify.com/playlist/37i9dQZF1EjtfuKBxPvmiy?si=ff464c73b8bc46c1"
-    pl2_link = "https://open.spotify.com/playlist/5SpXKOLINelm5Ivr5lUvj8?si=766c534edab644c8"
-    t_link = "https://open.spotify.com/track/4AKUOaCRcoKTFnVI9LtsrN?si=rmD4jX44SjK97JnfVgZEIA"
-    a_link = "https://open.spotify.com/album/2gSVPsycPerzCuSd67ENuF?si=ZUPIW6AAQD6yHNpy056Gaw"
-
-    l = [pl_link, pl2_link, t_link, a_link]
-    parser = SpotifyParser('Phantom')
-
-    results = [parser.get_spotify_album(a_link)]
-
-    for i in results:
-        print(len(i), i)
-    print(len(results))
-
-    pl_link = "https://soundcloud.com/wearegustavo/sets/the-best-musics-of-dubstep"
-    pl2_link = "https://soundcloud.com/chrisfromnorway/sets/longest-playlist-ever"
-    t_link = "https://soundcloud.com/officialpandaeyes/panda-eyes-teminite-highscore"
