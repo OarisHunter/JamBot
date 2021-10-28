@@ -8,7 +8,6 @@ import asyncio
 import spotipy
 import os
 
-from dotenv import load_dotenv
 from sclib import SoundcloudAPI, Track, Playlist
 from spotipy import SpotifyClientCredentials
 from configparser import ConfigParser
@@ -44,9 +43,7 @@ class ConfigUtil:
         :return:        Tuple with config values
         """
         config_object = ConfigParser()
-        home_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))  # This is awful TODO: FIX THIS
-        path = os.path.join(home_dir, 'config.ini')
-        config_object.read(path)
+        config_object.read("config.ini")
         config_field = config_object[field]
 
         config_dict = {}
@@ -474,13 +471,11 @@ class Embeds:
 class SpotifyParser:
     def __init__(self, author):
         self.author = author
-        load_dotenv()
         self.sp = spotipy.Spotify(
             client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                 client_secret=os.getenv('SPOTIFY_SECRET')))
 
     def parse_link(self, link):
-        song_info = None
         is_track = False
         # Check for track or playlist link
         if 'playlist' in link:
@@ -512,7 +507,7 @@ class SpotifyParser:
                         artist = 'song'
                     result.append((f'{title} {artist}', self.author))
             offset = offset + len(response['items'])
-        return result
+        return result, False
 
     def parse_album(self, link):
         response = self.sp.album(link)
@@ -525,7 +520,7 @@ class SpotifyParser:
                 else:
                     artist = 'song'
                 result.append((f'{title} {artist}', self.author))
-        return result
+        return result, False
 
     def parse_track(self, link):
         response = self.sp.track(link)
@@ -537,7 +532,7 @@ class SpotifyParser:
                 artist = 'song'
             song_info = Util().download_from_yt(f'{title} {artist}')
             return song_info[0], self.author
-        return None
+        return None, True
 
 class SoundcloudParser:
     def __init__(self, author):
@@ -559,49 +554,33 @@ class SoundcloudParser:
             track_flag = True
         return song_info, track_flag
 
-class TestCases:
-    @staticmethod
-    def config_tests():
+
+if __name__ == "__main__":
+    if True:
         config_test = ConfigUtil()
 
         bot_settings = config_test.read_config("BOT_SETTINGS")
         server_settings = config_test.read_config("SERVER_SETTINGS")
 
-        print("BOT_SETTINGS")
         print(bot_settings, '\n')
-        print("SERVER_SETTINGS")
         print("server: ", server_settings['138622532248010752'])
         print("prefix: ", server_settings['138622532248010752']['prefix'])
         print("loop: ", server_settings['138622532248010752']['loop'])
 
-    @staticmethod
-    def spotify_tests():
-        test_links = ["https://open.spotify.com/playlist/37i9dQZF1EjtfuKBxPvmiy?si=ff464c73b8bc46c1",
-                      "https://open.spotify.com/playlist/5SpXKOLINelm5Ivr5lUvj8?si=766c534edab644c8",
-                      "https://open.spotify.com/album/2gSVPsycPerzCuSd67ENuF?si=ZUPIW6AAQD6yHNpy056Gaw"]
-        parser = SpotifyParser('Phantom')
+    pl_link = "https://open.spotify.com/playlist/37i9dQZF1EjtfuKBxPvmiy?si=ff464c73b8bc46c1"
+    pl2_link = "https://open.spotify.com/playlist/5SpXKOLINelm5Ivr5lUvj8?si=766c534edab644c8"
+    t_link = "https://open.spotify.com/track/4AKUOaCRcoKTFnVI9LtsrN?si=rmD4jX44SjK97JnfVgZEIA"
+    a_link = "https://open.spotify.com/album/2gSVPsycPerzCuSd67ENuF?si=ZUPIW6AAQD6yHNpy056Gaw"
 
-        results = [parser.parse_link(link) for link in test_links]
+    l = [pl_link, pl2_link, t_link, a_link]
+    parser = SpotifyParser('Phantom')
 
-        for i in results:
-            print(len(i[0]), i[0])
-        print(results)
+    results = [parser.get_spotify_album(a_link)]
 
-    @staticmethod
-    def soundcloud_tests():
-        test_links = ["https://soundcloud.com/wearegustavo/sets/the-best-musics-of-dubstep",
-                      "https://soundcloud.com/chrisfromnorway/sets/longest-playlist-ever",]
-        parser = SoundcloudParser('Phantom')
+    for i in results:
+        print(len(i), i)
+    print(len(results))
 
-        results = [parser.parse_link(link) for link in test_links]
-
-        for i in results:
-            print(i)
-
-
-if __name__ == "__main__":
-    tests = TestCases()
-
-    tests.config_tests()
-    tests.spotify_tests()
-    tests.soundcloud_tests()
+    pl_link = "https://soundcloud.com/wearegustavo/sets/the-best-musics-of-dubstep"
+    pl2_link = "https://soundcloud.com/chrisfromnorway/sets/longest-playlist-ever"
+    t_link = "https://soundcloud.com/officialpandaeyes/panda-eyes-teminite-highscore"
