@@ -12,7 +12,6 @@ import random
 from sclib import SoundcloudAPI, Track, Playlist
 from spotipy import SpotifyClientCredentials
 from configparser import ConfigParser
-from youtube_search import YoutubeSearch
 
 
 class ConfigUtil:
