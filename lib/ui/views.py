@@ -194,7 +194,7 @@ class HelpView(PageView):
 
         :return:    None
         """
-        embed, _ = self.embeds.generate_help(self.ctx, self.current_page)
+        embed, self.num_pages = self.embeds.generate_help(self.ctx, self.current_page)
         await self.message.edit(embed=embed,
                                 view=self)
 

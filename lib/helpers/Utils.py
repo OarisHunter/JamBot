@@ -7,6 +7,7 @@ import youtube_dl
 import asyncio
 import spotipy
 import os
+import random
 
 from sclib import SoundcloudAPI, Track, Playlist
 from spotipy import SpotifyClientCredentials
@@ -204,18 +205,20 @@ class Util:
         :return:        str: "???" or Queue Duration
         """
         duration = 0
+        flag = False
         for song in queue:
-            if len(song) == 2:
-                duration = '???'
-                break
-            else:
+            if not len(song) == 2:
                 duration += song[4]
-        if not duration == '???':
-            if duration < 3660: # 1 hour
-                duration = f"{math.floor(duration / 60)}min {str(math.floor(duration % 60)).rjust(2, '0')}sec"
             else:
-                duration = f"{math.floor(duration / 3600)}hr {str(math.floor((duration / 60) % 60)).rjust(2, '0')}min"
-        return duration
+                # 3min = 180, 5min = 300
+                duration += random.randint(180, 260)
+                flag = True
+
+        if duration < 3660: # 1 hour
+            duration = f"{math.floor(duration / 60)}min {str(math.floor(duration % 60)).rjust(2, '0')}sec"
+        else:
+            duration = f"{math.floor(duration / 3600)}hr {str(math.floor((duration / 60) % 60)).rjust(2, '0')}min"
+        return f'Approx. {duration.split(" ")[0]}' if flag else duration
 
     @staticmethod
     def scrub_song_title(title):
