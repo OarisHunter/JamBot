@@ -7,6 +7,13 @@ Music Bot
 
 ------------------------------------------------------------------------------------------------------------------------
 
+REQUIREMENTS
+
+    - FFMpeg
+    - cookies.txt with YouTube.com cookies in Netscape HTTP format
+
+------------------------------------------------------------------------------------------------------------------------
+
 FEATURES
 
     - Stream YouTube videos from a given link.

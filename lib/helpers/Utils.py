@@ -11,6 +11,7 @@ import os
 from sclib import SoundcloudAPI, Track, Playlist
 from spotipy import SpotifyClientCredentials
 from configparser import ConfigParser
+from youtube_search import YoutubeSearch
 
 
 class ConfigUtil:
@@ -148,15 +149,14 @@ class Util:
         with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
             while not song_info:
                 song_info = ydl.extract_info(link, download=False)
+                # Detect if link is a playlist
+                try:
+                    if song_info and song_info['_type'] == 'playlist':
+                        # If link is a playlist set song_info to a list of songs
+                        song_info = song_info['entries']
+                except KeyError:
+                    pass
         # print(song_info)  # Debug call to see youtube_dl output
-
-        # Detect if link is a playlist
-        try:
-            if song_info['_type'] == 'playlist':
-                # If link is a playlist set song_info to a list of songs
-                song_info = song_info['entries']
-        except KeyError:
-            pass
 
         return song_info
 
@@ -570,7 +570,7 @@ class SpotifyParser:
             else:
                 artist = 'song'
             song_info = Util().download_from_yt(f'{title} {artist}')
-            return song_info[0]
+            return song_info[0] if type(song_info) == list else song_info
         return None
 
 class SoundcloudParser:
@@ -601,6 +601,7 @@ class SoundcloudParser:
 
         elif type(response) == Track:
             track = f'{self.utilities.scrub_song_title(response.title)} {response.artist}'
-            song_info = Util().download_from_yt(track)[0]
+            song_info = Util().download_from_yt(track)
+            song_info = song_info[0] if type(song_info) == list else song_info
             track_flag = True
         return song_info, track_flag

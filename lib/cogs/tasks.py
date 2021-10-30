@@ -21,12 +21,16 @@ class Tasks(commands.Cog):
 
         :return:    None
         """
-        for guild in self.bot.guilds:
-            server_queue = self.commands.queues.get_queue(guild.id)
-            for song in server_queue:
-                if len(song) == 2:  # Song is from non-youtube source
-                    await self.utilities.repopulate_queue(server_queue)
-                    break
+        try:
+            for guild in self.bot.guilds:
+                server_queue = self.commands.queues.get_queue(guild.id)
+                for song in server_queue:
+                    if len(song) == 2:  # Song is from non-youtube source
+                        await self.utilities.repopulate_queue(server_queue)
+                        break
+        except Exception as e:
+            print(f"update queues encountered an exception {e}")
+
 
     @update_queues.before_loop
     async def wait_until_login(self):
