@@ -31,7 +31,6 @@ class Tasks(commands.Cog):
         except IndexError or ValueError:
             pass
 
-
     @update_queues.before_loop
     async def wait_until_login(self):
         """
