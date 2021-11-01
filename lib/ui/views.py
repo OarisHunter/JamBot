@@ -43,6 +43,7 @@ class SearchView(nextcord.ui.View):
         self.value = int(interaction.data['custom_id'])
         self.stop()
 
+
 class ConfirmView(nextcord.ui.View):
     """
         View for Confirm/Cancel responses
@@ -79,6 +80,7 @@ class ConfirmView(nextcord.ui.View):
 
     async def on_timeout(self):
         self.stop()
+
 
 class PageView(nextcord.ui.View):
     """
@@ -198,6 +200,7 @@ class HelpView(PageView):
         await self.message.edit(embed=embed,
                                 view=self)
 
+
 class QueueView(PageView):
     """
         Discord View to generate the queue message and create a UI, displays commands in a page format.
@@ -227,6 +230,6 @@ class QueueView(PageView):
 
         :return:    None
         """
-        embed, _ = self.embeds.generate_display_queue(self.ctx, self.queue, self.current_page)
+        embed, self.num_pages = self.embeds.generate_display_queue(self.ctx, self.queue, self.current_page)
         await self.message.edit(embed=embed,
                                 view=self)
