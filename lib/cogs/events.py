@@ -10,6 +10,7 @@ class Events(commands.Cog):
     """
     nextcord Cog for event handling
     """
+
     def __init__(self, bot):
         self.bot = bot
         self.default_prefix = "~"
