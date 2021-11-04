@@ -453,6 +453,19 @@ class Commands(commands.Cog):
         await view.create_message()
         await view.wait()
 
+    @play_.error
+    async def play_handler(self, ctx, error):
+        """
+            Local error handler for play command
+
+        :param ctx:     nextcord command context
+        :param error:   The exception raised
+        :return:        None
+        """
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'link':
+                await ctx.channel.send("You forgot to add search keywords or a link!")
+
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """
@@ -462,14 +475,26 @@ class Commands(commands.Cog):
         :param error:   The exception raised
         :return:        None
         """
+        ignored = ()
+
+        # Prevents handling of commands with local handlers
         if hasattr(ctx.command, 'on_error'):
             return
 
+        # Prevents cogs with cog_command_error being handled
         cog = ctx.cog
         if cog:
             if cog._get_overridden_method(cog.cog_command_error) is not None:
                 return
 
+        # Check for original exceptions, if none are found, keep the current one passed to this function
+        error = getattr(error, 'original', error)
+
+        # skip ignored errors
+        if isinstance(error, ignored):
+            return
+
+        # Handling common individual cases
         if isinstance(error, commands.CommandNotFound):
             await ctx.channel.send(f"**Command Not Found!**\nTry {Utils.ConfigUtil().get_prefix(ctx, ctx)}help",
                                    delete_after=10)
