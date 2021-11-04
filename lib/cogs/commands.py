@@ -31,6 +31,7 @@ class Commands(commands.Cog):
 
     @commands.command(name='play',
                       help='Connects Bot to Voice',
+                      aliases=['p'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
     async def play_(self, ctx, *, link):
         """
@@ -75,6 +76,7 @@ class Commands(commands.Cog):
 
     @commands.command(name='skip',
                       help='Skips to next Song in Queue, will remove song from queue in loop mode',
+                      aliases=['s'],
                       usage="[number of songs to skip]")
     async def skip_(self, ctx, num: int = 1):
         """
