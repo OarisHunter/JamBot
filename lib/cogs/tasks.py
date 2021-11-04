@@ -28,9 +28,8 @@ class Tasks(commands.Cog):
                     if len(song) == 2:  # Song is from non-youtube source
                         await self.utilities.repopulate_queue(server_queue)
                         break
-        except Exception as e:
-            print(f"update queues encountered an exception {e}")
-
+        except IndexError or ValueError:
+            pass
 
     @update_queues.before_loop
     async def wait_until_login(self):

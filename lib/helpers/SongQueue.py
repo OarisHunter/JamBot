@@ -12,6 +12,7 @@ class SongQueue:
 
         Handles control functions of server song queues
     """
+
     def __init__(self, bot):
         self.bot = bot
         self.utilities = Util()

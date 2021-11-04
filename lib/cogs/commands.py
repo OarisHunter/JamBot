@@ -12,6 +12,7 @@ class Commands(commands.Cog):
     """
         nextcord Cog for command handling
     """
+
     def __init__(self, bot):
         self.bot = bot
         self.queues = SongQueue.SongQueue(bot)
@@ -157,10 +158,12 @@ class Commands(commands.Cog):
             pass
 
         song_queue = self.queues.get_queue(ctx.guild.id)
-
-        view = views.QueueView(self.bot, ctx, song_queue, self.view_timeout)
-        await view.create_message()
-        await view.wait()
+        if song_queue:
+            view = views.QueueView(self.bot, ctx, song_queue, self.view_timeout)
+            await view.create_message()
+            await view.wait()
+        else:
+            await ctx.channel.send('**Queue is empty!**', delete_after=10)
 
     @commands.command(name='np',
                       help='Displays the currently playing song',
@@ -362,7 +365,7 @@ class Commands(commands.Cog):
                 del song_queue[0]
 
                 random.shuffle(song_queue)
-                song_queue.insert(0, temp_song)     # add current song back into queue
+                song_queue.insert(0, temp_song)  # add current song back into queue
 
                 await ctx.channel.send(f"**Shuffled the Queue!**", delete_after=10)
                 await ctx.invoke(self.bot.get_command('queue'))

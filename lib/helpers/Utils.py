@@ -213,7 +213,7 @@ class Util:
                 duration += random.randint(180, 260)
                 flag = True
 
-        if duration < 3660: # 1 hour
+        if duration < 3660:  # 1 hour
             duration = f"{math.floor(duration / 60)}min {str(math.floor(duration % 60)).rjust(2, '0')}sec"
         else:
             duration = f"{math.floor(duration / 3600)}hr {str(math.floor((duration / 60) % 60)).rjust(2, '0')}min"
@@ -484,6 +484,7 @@ class SpotifyParser:
     """
         Spotify request parsing wrapper
     """
+
     def __init__(self, author):
         self.author = author
         self.utilities = Util()
@@ -575,10 +576,12 @@ class SpotifyParser:
             return song_info[0] if type(song_info) == list else song_info
         return None
 
+
 class SoundcloudParser:
     """
         Soundcloud request parsing wrapper
     """
+
     def __init__(self, author):
         self.author = author
         self.utilities = Util()

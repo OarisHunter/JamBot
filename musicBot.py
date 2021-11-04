@@ -25,10 +25,8 @@ extensions = [
 # Create Bot
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-# TOKEN = os.getenv('TEST_TOKEN')
 intents = nextcord.Intents.all()
 bot = commands.Bot(command_prefix=config.get_prefix, intents=intents, help_command=None)
-# bot = commands.Bot(command_prefix='`', intents=intents, help_command=None)
 
 
 @bot.event
