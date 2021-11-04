@@ -1,5 +1,5 @@
 # commands.py
-
+import traceback
 import nextcord
 import random
 
@@ -452,6 +452,44 @@ class Commands(commands.Cog):
         view = views.HelpView(self.bot, ctx, self.view_timeout)
         await view.create_message()
         await view.wait()
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        """
+            The event triggered when an error is raised while invoking a command
+
+        :param ctx:     Nextcord message context of command
+        :param error:   The exception raised
+        :return:        None
+        """
+        if hasattr(ctx.command, 'on_error'):
+            return
+
+        cog = ctx.cog
+        if cog:
+            if cog._get_overridden_method(cog.cog_command_error) is not None:
+                return
+
+        if isinstance(error, commands.CommandNotFound):
+            await ctx.channel.send(f"**Command Not Found!**\nTry {Utils.ConfigUtil().get_prefix(ctx, ctx)}help",
+                                   delete_after=10)
+
+        elif isinstance(error, commands.DisabledCommand):
+            await ctx.channel.send(f'command: {ctx.command} has been disabled!',
+                                   delete_after=10)
+
+        elif isinstance(error, commands.NoPrivateMessage):
+            try:
+                await ctx.channel.send(f'command: {ctx.command} can not be used in Private Messages!')
+            except nextcord.HTTPException:
+                pass
+
+        elif isinstance(error, (commands.BadArgument, commands.MissingRequiredArgument)):
+            await ctx.channel.send(f'Incorrect arguments for command: {ctx.command}!')
+
+        else:
+            print(f'Ignoring exception in command {ctx.command}')
+            traceback.print_exception(type(error), error, error.__traceback__)
 
 
 def setup(bot):
