@@ -38,17 +38,24 @@ async def on_ready():
     """
     # Start-up messages
     print("-*-*-*-*-*-*-*-* Tempo is Ready! *-*-*-*-*-*-*-*-*-*-")
-    print("Read from config!")
     server_settings = config.read_config('SERVER_SETTINGS')
+    print("\tRead from config!")
+
+    labels = ['Guild ID', 'Guild Name', 'Guild Owner', 'Prefix', 'Loop']
+    info = [(guild.id,
+             guild.name,
+             guild.owner.name,
+             server_settings[str(guild.id)]['prefix'],
+             server_settings[str(guild.id)]['loop'])
+            for guild in bot.guilds]
+
+    length_list = [len(str(element)) for row in info for element in row]
+    column_width = max(length_list)
+
     print(f"\tConnected to {len(bot.guilds)} servers.")
-    print(f"\t{'-'*8}Guild ID{'-'*(18+3)}Guild Name{'-'*25}Guild Owner{'-'*14}Prefix{'-'*6}Loop{'-'*3}")
-    for guild in bot.guilds:
-        print(f"\t"
-              f"| {guild.id} "
-              f"| {guild.name:>34} "
-              f"| {guild.owner.name:>34} "
-              f"| {server_settings[str(guild.id)]['prefix']:>7} "
-              f"| {server_settings[str(guild.id)]['loop']:>7} |")
+    print('\t', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
+    for row in info:
+        print('\t', ' | '.join(str(element).rjust(column_width + 2) for element in row))
 
     for extension in extensions:
         bot.load_extension(extension)
