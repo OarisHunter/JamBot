@@ -22,7 +22,7 @@ class Commands(commands.Cog):
         # Get config values
         self.config_obj = Utils.ConfigUtil()
         config = self.config_obj.read_config('BOT_SETTINGS')
-        self.test_song = config['test_song']
+        self.doom_playlist = config['doom_playlist']
         self.ydl_opts = config['ydl_opts']
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
@@ -270,8 +270,8 @@ class Commands(commands.Cog):
             # Turn off song loop in guild settings
             server_settings = self.config_obj.read_config("SERVER_SETTINGS")
             server = server_settings[str(ctx.guild.id)]
-            if server['loop']:
-                server['loop'] = False
+            server['loop'] = False
+            self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
             await ctx.message.delete(delay=5)
 
@@ -449,8 +449,49 @@ class Commands(commands.Cog):
     @commands.command(name='doom',
                       help='Plays DOOM game music on loop until disconnect',
                       usage='')
-    async def doom_(self):
-        pass
+    async def doom_(self, ctx):
+        await ctx.message.delete(delay=5)
+
+        await ctx.channel.send(embed=self.embeds.doom_embed(ctx), delete_after=20)
+
+        # Check that author is in a voice channel
+        if ctx.author.voice is None:
+            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+
+        # Pass link to parser to determine origin
+        link = self.doom_playlist
+        song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
+
+        # Check that author is in a voice channel
+        if ctx.author.voice is not None:
+            try:
+                # Connect to channel of author
+                vc = await ctx.author.voice.channel.connect()
+            except nextcord.DiscordException:
+                # Catch error if already connected
+                vc = ctx.guild.voice_client
+        else:
+            print(f"Play: Bot not connected to {ctx.guild.name}")
+            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+
+        if song_info:
+            # Add song(s) to queue from song info
+            await self.queues.add_song_to_queue(ctx, song_info, from_youtube=from_youtube)
+
+            # Shuffle queue
+            song_queue = self.queues.get_queue(ctx.guild.id)
+            if len(song_queue) > 1:
+                random.shuffle(song_queue)
+
+            # Toggle server loop setting
+            server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+            server = server_settings[str(ctx.guild.id)]
+            server['loop'] = True
+            self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+
+            # Play song if not playing a song
+            if not vc.is_playing():
+                await self.queues.play_music_(ctx)
 
     @commands.command(name='help')
     async def help_(self, ctx):

@@ -186,8 +186,8 @@ class SongQueue:
                 # Turn off song loop in guild settings
                 server_settings = self.config_obj.read_config("SERVER_SETTINGS")
                 server = server_settings[str(ctx.guild.id)]
-                if server['loop']:
-                    server['loop'] = False
+                server['loop'] = False
+                self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
         except nextcord.DiscordException:
             pass
