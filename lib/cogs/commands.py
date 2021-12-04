@@ -170,7 +170,7 @@ class Commands(commands.Cog):
     @commands.command(name='np',
                       help='Displays the currently playing song',
                       usage='')
-    async def nowPlaying_(self, ctx):
+    async def now_playing_(self, ctx):
         """
             Command to display "Now Playing" message
 
@@ -264,7 +264,14 @@ class Commands(commands.Cog):
             if vc and vc.is_connected():
                 await vc.disconnect()
 
+            # Clear song queue
             self.queues.clear_queue(ctx.guild.id)
+
+            # Turn off song loop in guild settings
+            server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+            server = server_settings[str(ctx.guild.id)]
+            if server['loop']:
+                server['loop'] = False
 
             await ctx.message.delete(delay=5)
 
@@ -438,6 +445,12 @@ class Commands(commands.Cog):
 
         await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
         self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+
+    @commands.command(name='doom',
+                      help='Plays DOOM game music on loop until disconnect',
+                      usage='')
+    async def doom_(self):
+        pass
 
     @commands.command(name='help')
     async def help_(self, ctx):

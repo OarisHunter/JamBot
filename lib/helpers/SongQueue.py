@@ -176,10 +176,18 @@ class SongQueue:
                     song_queue.append(song_temp)
                     del song_queue[0]
 
-            # Disconnect if queue is empty and bot is not playing
+            # if queue is empty and bot is not playing, timeout bot
             await asyncio.sleep(180)
             if not song_queue and not vc.is_playing():
+                # Disconnect bot
                 await ctx.invoke(self.bot.get_command('disconnect'))
+                # Make sure queue is cleared
+                self.clear_queue(ctx.guild.id)
+                # Turn off song loop in guild settings
+                server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+                server = server_settings[str(ctx.guild.id)]
+                if server['loop']:
+                    server['loop'] = False
 
         except nextcord.DiscordException:
             pass

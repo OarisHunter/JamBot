@@ -16,7 +16,7 @@ class Events(commands.Cog):
         self.default_prefix = "~"
         self.embeds = Utils.Embeds(bot)
         self.utilities = Utils.Util()
-        self.config = Utils.ConfigUtil()
+        self.config_obj = Utils.ConfigUtil()
         self.command_cog = bot.get_cog("Commands")
 
     @commands.Cog.listener()
@@ -37,7 +37,15 @@ class Events(commands.Cog):
                 if self.bot.user in members and len(members) == 1:
                     # Disconnect bot
                     await member.guild.voice_client.disconnect()
+
+                    # Clear server song queue
                     self.command_cog.queues.clear_queue(member.guild.id)
+
+                    # Turn off song loop in guild
+                    server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+                    server = server_settings[str(member.guild.id)]
+                    if server['loop']:
+                        server['loop'] = False
 
         except AttributeError:
             pass
@@ -52,7 +60,7 @@ class Events(commands.Cog):
         """
         # Set prefix of new server to default prefix and loop toggle
         default = {"prefix": self.default_prefix, "loop": False}
-        self.config.write_config('w', "SERVER_SETTINGS", str(guild.id), default)
+        self.config_obj.write_config('w', "SERVER_SETTINGS", str(guild.id), default)
 
         # Update server queues
         self.command_cog.queues.create_server_queue()
@@ -70,7 +78,7 @@ class Events(commands.Cog):
         :return:        None
         """
         # remove server's prefix from config
-        self.config.write_config('d', "SERVER_SETTINGS", str(guild.id))
+        self.config_obj.write_config('d', "SERVER_SETTINGS", str(guild.id))
 
         # Update server queues
         self.command_cog.queues.create_server_queue()
