@@ -33,17 +33,19 @@ class Commands(commands.Cog):
                       help='Connects Bot to Voice',
                       aliases=['p'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    async def play_(self, ctx, *, link):
+    async def play_(self, ctx, *, link, song_info=None):
         """
             Command to connect to voice
                 plays song
                     from yt link
                     from yt search
                     from yt playlist link
+                    from mix search
 
-        :param ctx:     Command context
-        :param link:    Given link :tuple
-        :return:        None
+        :param ctx:         Command context
+        :param link:        Given link :tuple
+        :param song_info:   Bypass song search if song info is already available
+        :return:            None
         """
         await ctx.message.delete(delay=5)
 
@@ -52,7 +54,12 @@ class Commands(commands.Cog):
             return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
         # Pass link to parser to determine origin
-        song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
+        if not song_info:
+            song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
+        else:
+            from_youtube = False
+
+        print(song_info, from_youtube)
 
         # Check that author is in a voice channel
         if ctx.author.voice is not None:
@@ -419,7 +426,7 @@ class Commands(commands.Cog):
 
     @commands.command(name='loop',
                       help='Toggles loop mode for the song queue',
-                      usage='')
+                      usage='<artist name>')
     async def loop_(self, ctx):
         """
             Toggles the loop function of the song queue,
@@ -445,6 +452,29 @@ class Commands(commands.Cog):
 
         await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
         self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+
+    @commands.command(name='mix',
+                      help='Searches for an artist and queues their songs',
+                      usage='')
+    async def mix_(self, ctx, *, artist_name):
+        try:
+            await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        search = Utils.SpotifyParser(ctx.message.author)
+
+        view = views.SearchView()
+        artists = search.artist_search(artist_name)
+        message = await ctx.channel.send(embed=self.embeds.generate_mix_embed(ctx, artists),
+                                         view=view)
+        isTimeout = await view.wait()
+        await message.delete()
+
+        if not isTimeout:
+            _, artist_uri = artists[view.value]
+            song_info = search.get_artist_all_tracks(artist_uri)
+            print(song_info)
+            await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
 
     @commands.command(name='doom',
                       help='Plays DOOM game music on loop until disconnect',
