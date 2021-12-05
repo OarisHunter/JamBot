@@ -473,7 +473,6 @@ class Commands(commands.Cog):
         if not isTimeout:
             _, artist_uri = artists[view.value]
             song_info = search.get_artist_all_tracks(artist_uri)
-            print(song_info)
             await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
 
     @commands.command(name='doom',
