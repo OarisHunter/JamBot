@@ -4,7 +4,10 @@ import nextcord
 import random
 
 from nextcord.ext import commands
-from lib.helpers import SongQueue, Utils, SongSearch
+from lib.helpers.Utils import Util, ConfigUtil
+from lib.helpers.Embeds import Embeds
+from lib.helpers.SongQueue import SongQueue
+from lib.helpers.SongSearch import SongSearch
 from lib.ui import views
 
 
@@ -15,12 +18,12 @@ class Commands(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.queues = SongQueue.SongQueue(bot)
-        self.utilities = Utils.Util()
-        self.embeds = Utils.Embeds(bot)
+        self.queues = SongQueue(bot)
+        self.utilities = Util()
+        self.embeds = Embeds(bot)
 
         # Get config values
-        self.config_obj = Utils.ConfigUtil()
+        self.config_obj = ConfigUtil()
         config = self.config_obj.read_config('BOT_SETTINGS')
         self.doom_playlist = config['doom_playlist']
         self.ydl_opts = config['ydl_opts']

@@ -2,7 +2,8 @@
 
 import nextcord
 
-from lib.helpers import Utils
+from lib.helpers.Utils import ConfigUtil
+from lib.helpers.Embeds import Embeds
 
 
 class SearchView(nextcord.ui.View):
@@ -14,7 +15,7 @@ class SearchView(nextcord.ui.View):
 
     def __init__(self):
         super().__init__()
-        config = Utils.ConfigUtil().read_config('BOT_SETTINGS')
+        config = ConfigUtil().read_config('BOT_SETTINGS')
         self.queue_display_length = config['queue_display_length']
         self.value = None
 
@@ -92,7 +93,7 @@ class PageView(nextcord.ui.View):
         self.num_pages = 0
         self.current_page = 0
         self.message = None
-        self.embeds = Utils.Embeds(bot)
+        self.embeds = Embeds(bot)
 
     @nextcord.ui.button(label='<<', style=nextcord.ButtonStyle.gray)
     async def first_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -178,7 +179,7 @@ class HelpView(PageView):
         self.num_pages = 0
         self.current_page = 0
         self.message = None
-        self.embeds = Utils.Embeds(bot)
+        self.embeds = Embeds(bot)
 
     async def create_message(self):
         """
@@ -211,7 +212,7 @@ class QueueView(PageView):
         self.num_pages = 0
         self.current_page = 0
         self.message = None
-        self.embeds = Utils.Embeds(bot)
+        self.embeds = Embeds(bot)
         self.queue = queue
 
     async def create_message(self):
