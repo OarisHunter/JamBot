@@ -59,8 +59,6 @@ class Commands(commands.Cog):
         else:
             from_youtube = False
 
-        print(song_info, from_youtube)
-
         # Check that author is in a voice channel
         if ctx.author.voice is not None:
             try:
