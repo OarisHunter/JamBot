@@ -3,7 +3,8 @@
 import nextcord
 
 from nextcord.ext import commands
-from lib.helpers import Utils
+from lib.helpers.Utils import Util, ConfigUtil
+from lib.helpers.Embeds import Embeds
 
 
 class Events(commands.Cog):
@@ -14,9 +15,9 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.default_prefix = "~"
-        self.embeds = Utils.Embeds(bot)
-        self.utilities = Utils.Util()
-        self.config_obj = Utils.ConfigUtil()
+        self.embeds = Embeds(bot)
+        self.utilities = Util()
+        self.config_obj = ConfigUtil()
         self.command_cog = bot.get_cog("Commands")
 
     @commands.Cog.listener()
@@ -45,7 +46,7 @@ class Events(commands.Cog):
                     server_settings = self.config_obj.read_config("SERVER_SETTINGS")
                     server = server_settings[str(member.guild.id)]
                     server['loop'] = False
-                    self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+                    self.config_obj.write_config('w', 'SERVER_SETTINGS', str(member.guild.id), server)
 
         except AttributeError:
             pass

@@ -4,7 +4,11 @@ import nextcord
 import random
 
 from nextcord.ext import commands
-from lib.helpers import SongQueue, Utils, SongSearch
+from lib.helpers.Utils import Util, ConfigUtil
+from lib.helpers.Embeds import Embeds
+from lib.helpers.SpotifyParser import SpotifyParser
+from lib.helpers.SongQueue import SongQueue
+from lib.helpers.SongSearch import SongSearch
 from lib.ui import views
 
 
@@ -15,12 +19,12 @@ class Commands(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.queues = SongQueue.SongQueue(bot)
-        self.utilities = Utils.Util()
-        self.embeds = Utils.Embeds(bot)
+        self.queues = SongQueue(bot)
+        self.utilities = Util()
+        self.embeds = Embeds(bot)
 
         # Get config values
-        self.config_obj = Utils.ConfigUtil()
+        self.config_obj = ConfigUtil()
         config = self.config_obj.read_config('BOT_SETTINGS')
         self.doom_playlist = config['doom_playlist']
         self.ydl_opts = config['ydl_opts']
@@ -295,7 +299,7 @@ class Commands(commands.Cog):
         :param prefix:  User entered prefix: tuple
         :return:        None
         """
-        config = Utils.ConfigUtil()
+        config = ConfigUtil()
         prefix = self.utilities.tuple_to_string(prefix)
 
         # If a prefix was given, change the prefix, otherwise display the current prefix
@@ -344,7 +348,7 @@ class Commands(commands.Cog):
         :param keywords:    User entered string
         :return:            None
         """
-        search = SongSearch.SongSearch()
+        search = SongSearch()
         view = views.SearchView()
 
         results = search.search_yt(keywords)
@@ -459,7 +463,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             pass
-        search = Utils.SpotifyParser(ctx.message.author)
+        search = SpotifyParser(ctx.message.author)
 
         view = views.SearchView()
         artists = search.artist_search(artist_name)
@@ -579,7 +583,7 @@ class Commands(commands.Cog):
 
         # Handling common individual cases
         if isinstance(error, commands.CommandNotFound):
-            await ctx.channel.send(f"**Command Not Found!**\nTry {Utils.ConfigUtil().get_prefix(ctx, ctx)}help",
+            await ctx.channel.send(f"**Command Not Found!**\nTry {ConfigUtil().get_prefix(ctx, ctx)}help",
                                    delete_after=10)
 
         elif isinstance(error, commands.DisabledCommand):

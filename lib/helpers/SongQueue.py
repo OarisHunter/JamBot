@@ -3,7 +3,10 @@
 import nextcord
 import asyncio
 
-from lib.helpers.Utils import Util, Embeds, ConfigUtil, SpotifyParser, SoundcloudParser
+from lib.helpers.Utils import Util, ConfigUtil
+from lib.helpers.Embeds import Embeds
+from lib.helpers.SpotifyParser import SpotifyParser
+from lib.helpers.SoundCloudParser import SoundcloudParser
 
 
 class SongQueue:

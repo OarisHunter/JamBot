@@ -3,13 +3,13 @@
 import nextcord
 
 from nextcord.ext import commands, tasks
-from lib.helpers import Utils
+from lib.helpers.Utils import Util
 
 
 class Tasks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.utilities = Utils.Util()
+        self.utilities = Util()
         self.commands = bot.get_cog("Commands")
 
         self.start_tasks()
