@@ -1,3 +1,8 @@
+# SoundCloudParser.py
+
+from lib.helpers.Utils import Util
+from sclib import SoundcloudAPI, Playlist, Track
+
 class SoundcloudParser:
     """
         Soundcloud request parsing wrapper

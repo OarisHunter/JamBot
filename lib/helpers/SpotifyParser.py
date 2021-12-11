@@ -1,3 +1,11 @@
+# SpotifyParser.py
+
+import spotipy
+import os
+
+from lib.helpers.Utils import Util
+from spotipy import SpotifyClientCredentials
+
 class SpotifyParser:
     """
         Spotify request parsing wrapper
