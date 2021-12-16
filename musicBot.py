@@ -55,6 +55,9 @@ async def on_ready():
     for row in info:
         print('\t', ' | '.join(str(element).rjust(column_width + 2) for element in row))
 
+    if config.read_config('BOT_SETTINGS')['broken']:
+        await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name="Maintenance"))
+
     for extension in extensions:
         bot.load_extension(extension)
 
