@@ -57,6 +57,7 @@ class ConfigUtil:
             config_dict['queue_display_length'] = int(config_field['queue_display_length'])
             config_dict['default_prefix'] = config_field['default_prefix']
             config_dict['view_timeout'] = int(config_field['view_timeout'])
+            config_dict['broken'] = bool(config_field['broken'])
         elif field == 'SERVER_SETTINGS':
             for i in config_field.keys():
                 temp = ast.literal_eval(config_field[i])

@@ -32,6 +32,7 @@ class Commands(commands.Cog):
         self.default_prefix = config['default_prefix']
         self.queue_display_length = config['queue_display_length']
         self.view_timeout = config['view_timeout']
+        self.broken = config['broken']
 
     @commands.command(name='play',
                       help='Connects Bot to Voice',
@@ -52,6 +53,9 @@ class Commands(commands.Cog):
         :return:            None
         """
         await ctx.message.delete(delay=5)
+        if self.broken:
+            await self.broken_(ctx)
+            return
 
         # Check that author is in a voice channel
         if ctx.author.voice is None:
@@ -97,6 +101,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
             vc = ctx.guild.voice_client  # Get current voice client
 
@@ -143,6 +150,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
             # Empty the queue
             self.queues.clear_queue(ctx.guild.id)
@@ -165,6 +175,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
         except nextcord.DiscordException:
             pass
 
@@ -188,6 +201,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
             vc = ctx.message.guild.voice_client
             song_queue = self.queues.get_queue(ctx.guild.id)
@@ -213,6 +229,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
             vc = ctx.guild.voice_client
 
@@ -241,6 +260,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
         except nextcord.DiscordException:
             pass
 
@@ -267,6 +289,11 @@ class Commands(commands.Cog):
         :return:        None
         """
         try:
+            await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
+
             vc = ctx.guild.voice_client
 
             # Check that the bot is connected to voice
@@ -281,8 +308,6 @@ class Commands(commands.Cog):
             server = server_settings[str(ctx.guild.id)]
             server['loop'] = False
             self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
-
-            await ctx.message.delete(delay=5)
 
         except nextcord.DiscordException:
             pass
@@ -348,6 +373,10 @@ class Commands(commands.Cog):
         :param keywords:    User entered string
         :return:            None
         """
+        await ctx.message.delete(delay=5)
+        if self.broken:
+            await self.broken_(ctx)
+            return
         search = SongSearch()
         view = views.SearchView()
 
@@ -375,6 +404,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
             song_queue = self.queues.get_queue(ctx.guild.id)
             if len(song_queue) > 1:
@@ -405,6 +437,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
             song_queue = self.queues.get_queue(ctx.guild.id)
             if len(song_queue) > num - 1:
@@ -439,6 +474,9 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
         except nextcord.DiscordException:
             pass
 
@@ -461,6 +499,9 @@ class Commands(commands.Cog):
     async def mix_(self, ctx, *, artist_name):
         try:
             await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
         except nextcord.DiscordException:
             pass
         search = SpotifyParser(ctx.message.author)
@@ -482,6 +523,9 @@ class Commands(commands.Cog):
                       usage='')
     async def doom_(self, ctx):
         await ctx.message.delete(delay=5)
+        if self.broken:
+            await self.broken_(ctx)
+            return
 
         await ctx.channel.send(embed=self.embeds.doom_embed(ctx), delete_after=20)
 
@@ -539,6 +583,9 @@ class Commands(commands.Cog):
         view = views.HelpView(self.bot, ctx, self.view_timeout)
         await view.create_message()
         await view.wait()
+
+    async def broken_(self, ctx):
+        await ctx.channel.send(embed=self.embeds.broken_embed(), delete_after=30)
 
     @play_.error
     async def play_handler(self, ctx, error):

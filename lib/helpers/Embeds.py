@@ -279,3 +279,13 @@ class Embeds:
         embed.set_footer(text=f'{ctx.message.author.name} is loading their shotgun...',
                          icon_url=ctx.message.author.display_avatar)
         return embed
+
+    def broken_embed(self):
+        embed = Embed(title='We\'re Sorry...', color=self.embed_theme)
+        embed.add_field(name="Tempo is down",
+                        value="Something is broken...\n"
+                              "We're working on fixing it, stay tuned!",
+                        inline=False)
+        embed.set_footer(text=f"{self.bot.user.name} is under maintenance", icon_url=self.bot.user.display_avatar)
+        embed.set_thumbnail(url=self.bot.user.display_avatar)
+        return embed
