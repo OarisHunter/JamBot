@@ -2,7 +2,7 @@
 
 import math
 import ast
-import yt_dlp
+import youtube_dl
 import asyncio
 import random
 
@@ -125,8 +125,7 @@ class Util:
                                     string:thumbnail)
         """
         title = song_info['title']
-        formats = [f for f in song_info['formats'] if f['resolution'] == 'audio only']
-        url = formats[-1]['url']
+        url = song_info['formats'][0]['url']
         web_page = song_info['webpage_url']
         duration = song_info['duration']
         thumbnail = song_info["thumbnails"][-1]['url']
@@ -142,7 +141,7 @@ class Util:
         """
         # Call Youtube_DL to fetch song info
         song_info = None
-        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
             while not song_info:
                 song_info = ydl.extract_info(link, download=False)
                 # Detect if link is a playlist
