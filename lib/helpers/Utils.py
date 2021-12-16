@@ -1,16 +1,11 @@
 # Utils.py
 
-import nextcord
 import math
 import ast
-import youtube_dl
+import yt_dlp
 import asyncio
-import spotipy
-import os
 import random
 
-from sclib import SoundcloudAPI, Track, Playlist
-from spotipy import SpotifyClientCredentials
 from configparser import ConfigParser
 
 
@@ -57,7 +52,7 @@ class ConfigUtil:
             config_dict['queue_display_length'] = int(config_field['queue_display_length'])
             config_dict['default_prefix'] = config_field['default_prefix']
             config_dict['view_timeout'] = int(config_field['view_timeout'])
-            config_dict['broken'] = bool(config_field['broken'])
+            config_dict['broken'] = config_field.getboolean('broken')
         elif field == 'SERVER_SETTINGS':
             for i in config_field.keys():
                 temp = ast.literal_eval(config_field[i])
@@ -130,7 +125,8 @@ class Util:
                                     string:thumbnail)
         """
         title = song_info['title']
-        url = song_info["formats"][0]["url"]
+        formats = [f for f in song_info['formats'] if f['resolution'] == 'audio only']
+        url = formats[-1]['url']
         web_page = song_info['webpage_url']
         duration = song_info['duration']
         thumbnail = song_info["thumbnails"][-1]['url']
@@ -146,7 +142,7 @@ class Util:
         """
         # Call Youtube_DL to fetch song info
         song_info = None
-        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
             while not song_info:
                 song_info = ydl.extract_info(link, download=False)
                 # Detect if link is a playlist
