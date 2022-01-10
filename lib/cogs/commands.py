@@ -463,7 +463,7 @@ class Commands(commands.Cog):
 
     @commands.command(name='loop',
                       help='Toggles loop mode for the song queue',
-                      usage='<artist name>')
+                      usage='')
     async def loop_(self, ctx):
         """
             Toggles the loop function of the song queue,
@@ -495,8 +495,15 @@ class Commands(commands.Cog):
 
     @commands.command(name='mix',
                       help='Searches for an artist and queues their songs',
-                      usage='')
+                      usage='<artist name>')
     async def mix_(self, ctx, *, artist_name):
+        """
+            Builds a playlist from all available songs by an artist from spotify
+
+        :param ctx:             Discord message context
+        :param artist_name:     User input of spotify artist
+        :return:                None
+        """
         try:
             await ctx.message.delete(delay=5)
             if self.broken:
@@ -522,6 +529,12 @@ class Commands(commands.Cog):
                       help='Plays DOOM game music on loop until disconnect',
                       usage='')
     async def doom_(self, ctx):
+        """
+            Loops music from the DOOM game indefinitely
+
+        :param ctx:     Discord message context
+        :return:        None
+        """
         await ctx.message.delete(delay=5)
         if self.broken:
             await self.broken_(ctx)

@@ -257,6 +257,13 @@ class Embeds:
         return embed
 
     def generate_mix_embed(self, ctx, results):
+        """
+            Generates response to mix command message
+
+        :param ctx:         Discord message context
+        :param results:     List of artists for the user to choose from
+        :return:            Discord Embed
+        """
         embed = Embed(title='Loop', color=self.embed_theme)
         embed.set_thumbnail(url=self.bot.user.display_avatar)
 
@@ -270,6 +277,12 @@ class Embeds:
         return embed
 
     def doom_embed(self, ctx):
+        """
+            Generates response to DOOM command
+
+        :param ctx:     Discord message context
+        :return:        Discord Embed
+        """
         embed = Embed(title='DOOM', color=self.embed_theme)
         embed.set_thumbnail(url="https://i1.sndcdn.com/avatars-7EKbPp1OVrlDMLIc-ou0k0g-t240x240.jpg")
 
@@ -281,6 +294,11 @@ class Embeds:
         return embed
 
     def broken_embed(self):
+        """
+            Generates a message to notify user that bot is down
+
+        :return:    Discord Embed
+        """
         embed = Embed(title='We\'re Sorry...', color=self.embed_theme)
         embed.add_field(name="Tempo is down",
                         value="Something is broken...\n"
