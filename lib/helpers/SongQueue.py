@@ -64,7 +64,7 @@ class SongQueue:
         """
         self.server_queues[str(guild_id)].clear()
 
-    def add_queue(self, guild_id, song_set):
+    def add_queue(self, guild_id, song_set, queue_position=None):
         """
             Helper function
             Add song to Server Queue in Queue Dict
@@ -73,12 +73,20 @@ class SongQueue:
         :param song_set:    song tuple / list of song tuples
         :return:            None
         """
-        if type(song_set) == list:
-            [self.server_queues[str(guild_id)].append(i) for i in song_set]
+        if not queue_position:
+            # normally, we add the song to the end of the queue
+            if type(song_set) == list:
+                [self.server_queues[str(guild_id)].append(i) for i in song_set]
+            else:
+                self.server_queues[str(guild_id)].append(song_set)
         else:
-            self.server_queues[str(guild_id)].append(song_set)
+            # we can also insert the song in the queue
+            if type(song_set) == list:
+                self.server_queues[str(guild_id)][1:1] = song_set
+            else:
+                self.server_queues[str(guild_id)].insert(1, song_set)
 
-    async def add_song_to_queue(self, ctx, song_info, from_youtube=True):
+    async def add_song_to_queue(self, ctx, song_info, from_youtube=True, queue_position=None):
         """
             Add song(s) to queue
 
@@ -109,7 +117,7 @@ class SongQueue:
             # If link was a playlist, loop through list of songs and add them to the queue
             if type(song_info) == list:
                 song_list = [self.utilities.song_info_to_tuple(i, ctx.message.author) for i in song_info]
-                self.add_queue(ctx.guild.id, song_list)
+                self.add_queue(ctx.guild.id, song_list, queue_position)
                 if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
                     await ctx.channel.send(
                         embed=self.embeds.generate_added_queue_embed(ctx, song_list),
@@ -126,11 +134,11 @@ class SongQueue:
                         delete_after=40)
 
                 # add song to queue for playback
-                self.add_queue(ctx.guild.id, song)
+                self.add_queue(ctx.guild.id, song, queue_position)
         else:
             # Create song list, add songs to server queue, display message
             song_list = [i for i in song_info]
-            self.add_queue(ctx.guild.id, song_list)
+            self.add_queue(ctx.guild.id, song_list, queue_position)
             if (len(song_info)) > 1 or ctx.guild.voice_client.is_playing():
                 await ctx.channel.send(
                     embed=self.embeds.generate_added_queue_embed(ctx, song_list),

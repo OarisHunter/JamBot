@@ -38,7 +38,7 @@ class Commands(commands.Cog):
                       help='Connects Bot to Voice',
                       aliases=['p'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    async def play_(self, ctx, *, link, song_info=None):
+    async def play_(self, ctx, *, link, song_info=None, queue_position=None):
         """
             Command to connect to voice
                 plays song
@@ -47,10 +47,11 @@ class Commands(commands.Cog):
                     from yt playlist link
                     from mix search
 
-        :param ctx:         Command context
-        :param link:        Given link :tuple
-        :param song_info:   Bypass song search if song info is already available
-        :return:            None
+        :param ctx:             Command context
+        :param link:            Given link :tuple
+        :param song_info:       Bypass song search if song info is already available
+        :param queue_position:  Position to place song in queue
+        :return:                None
         """
         await ctx.message.delete(delay=5)
         if self.broken:
@@ -81,11 +82,30 @@ class Commands(commands.Cog):
 
         if song_info:
             # Add song(s) to queue from song info
-            await self.queues.add_song_to_queue(ctx, song_info, from_youtube=from_youtube)
+            await self.queues.add_song_to_queue(ctx, song_info, from_youtube=from_youtube, queue_position=queue_position)
 
             # Play song if not playing a song
             if not vc.is_playing():
                 await self.queues.play_music_(ctx)
+
+    @commands.command(name='playnext',
+                      help="Inserts song into queue to be played next",
+                      aliases=['insert'],
+                      usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
+    async def playnext_(self, ctx, *, link):
+        """
+            Calls play with a parameter to insert the song into the front of the queue
+
+        :param ctx:     Discord message context
+        :param link:    Given link :tuple
+        :return:        None
+        """
+        await ctx.message.delete(delay=5)
+        if self.broken:
+            await self.broken_(ctx)
+            return
+
+        await ctx.invoke(self.bot.get_command('play'), link=link, queue_position=1)
 
     @commands.command(name='skip',
                       help='Skips to next Song in Queue, will remove song from queue in loop mode',
