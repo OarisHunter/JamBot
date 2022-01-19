@@ -44,13 +44,13 @@ class ConfigUtil:
 
         config_dict = {}
         if field == 'BOT_SETTINGS':
-            config_dict["invite_link"] = config_field['invite_link']
-            config_dict["doom_playlist"] = config_field['doom_playlist']
+            config_dict["invite_link"] = str(config_field['invite_link'])
+            config_dict["doom_playlist"] = str(config_field['doom_playlist'])
             config_dict['ydl_opts'] = ast.literal_eval(config_field['ydl_opts'])
             config_dict['ffmpeg_opts'] = ast.literal_eval(config_field['ffmpeg_opts'])
             config_dict['embed_theme'] = int(config_field['embed_theme'], 0)
             config_dict['queue_display_length'] = int(config_field['queue_display_length'])
-            config_dict['default_prefix'] = config_field['default_prefix']
+            config_dict['default_prefix'] = str(config_field['default_prefix'])
             config_dict['view_timeout'] = int(config_field['view_timeout'])
             config_dict['broken'] = config_field.getboolean('broken')
         elif field == 'SERVER_SETTINGS':
