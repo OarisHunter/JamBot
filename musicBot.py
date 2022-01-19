@@ -19,7 +19,8 @@ config = ConfigUtil()
 extensions = [
     'lib.cogs.commands',
     'lib.cogs.events',
-    'lib.cogs.tasks'
+    'lib.cogs.tasks',
+    'lib.cogs.application_commands'
 ]
 
 # Create Bot
