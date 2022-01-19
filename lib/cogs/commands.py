@@ -3,6 +3,7 @@ import traceback
 import nextcord
 import random
 
+from datetime import datetime
 from nextcord.ext import commands
 from lib.helpers.Utils import Util, ConfigUtil
 from lib.helpers.Embeds import Embeds
@@ -228,7 +229,8 @@ class Commands(commands.Cog):
             vc = ctx.message.guild.voice_client
             song_queue = self.queues.get_queue(ctx.guild.id)
             if vc and vc.is_playing():
-                print(f"Now Playing {song_queue[0][0]} in {ctx.author.voice.channel.name} of {ctx.guild.name}")
+                now = datetime.now().strftime('%m/%d/%Y, %H:%M')
+                print(f"({now})\tNow Playing {song_queue[0][0]} in {ctx.guild.name}")
                 await ctx.channel.send(embed=self.embeds.generate_np_embed(ctx, song_queue[0]))
             else:
                 print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
