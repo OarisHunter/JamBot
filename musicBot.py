@@ -37,6 +37,10 @@ async def on_ready():
     """
     # Start-up messages
     print("-*-*-*-*-*-*-*-* Tempo is Ready! *-*-*-*-*-*-*-*-*-*-")
+    # Check config validity
+    if not config.validate_config():
+        print("Bot running in restricted mode, please update config and restart")
+        return
     server_settings = config.read_config('SERVER_SETTINGS')
     print("\tRead from config!")
 

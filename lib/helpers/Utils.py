@@ -13,6 +13,9 @@ class ConfigUtil:
     """
         Config Utility functions for music bot
     """
+    def __init__(self):
+        self.invalid_config_message="""Config file is invalid
+        likely due to a missing starting guild id or an invalid invite link"""
 
     def get_prefix(self, client, message):
         """
@@ -86,6 +89,24 @@ class ConfigUtil:
         # Update config file
         with open('config.ini', 'w') as conf:
             config_object.write(conf)
+
+    def validate_config(self):
+        gulid_id_length = 18
+
+        settings = self.read_config('BOT_SETTINGS')
+        servers = self.read_config('SERVER_SETTINGS')
+
+        # Check link
+        link_checks = ['https://discord.com', 'oauth', 'client_id', 'bot', 'applications.commands', 'permissions=8']
+        is_link_valid = True if False not in [check in settings['invite_link'] for check in link_checks] else False
+
+        # Check start guild id
+        is_guild_valid = True if len(str(list(servers.keys())[0])) == gulid_id_length else False
+
+        if not is_link_valid or not is_guild_valid:
+            print(self.invalid_config_message)
+
+        return True if is_link_valid and is_guild_valid else False
 
 
 class Util:

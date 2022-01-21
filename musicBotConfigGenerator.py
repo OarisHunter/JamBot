@@ -23,7 +23,7 @@ config_object['BOT_SETTINGS'] = {
 }
 
 config_object['PREFIXES'] = {
-    "----- GUILD ID HERE!!! -----": {'prefix': '!', 'loop': False}
+    "--------- GUILD ID HERE!!! ---------": {'prefix': '!', 'loop': False}
 }
 
 if __name__ == '__main__':
