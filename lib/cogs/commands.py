@@ -230,7 +230,7 @@ class Commands(commands.Cog):
             song_queue = self.queues.get_queue(ctx.guild.id)
             if vc and vc.is_playing():
                 now = datetime.now().strftime('%m/%d/%Y, %H:%M')
-                print(f"({now})\t--Now Playing-- \"{song_queue[0][0]}\" in guild: {ctx.guild.name}")
+                print(f"({now}) --Now Playing-- \"{song_queue[0][0]}\" in guild: {ctx.guild.name}")
                 await ctx.channel.send(embed=self.embeds.generate_np_embed(ctx, song_queue[0]))
             else:
                 print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
