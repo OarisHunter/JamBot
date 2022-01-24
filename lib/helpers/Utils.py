@@ -14,7 +14,7 @@ class ConfigUtil:
         Config Utility functions for music bot
     """
     def __init__(self):
-        self.invalid_config_message="""Config file is invalid
+        self.invalid_config_message = """Config file is invalid
         likely due to a missing starting guild id or an invalid invite link"""
 
     def get_prefix(self, client, message):
@@ -91,7 +91,12 @@ class ConfigUtil:
             config_object.write(conf)
 
     def validate_config(self):
-        gulid_id_length = 18
+        """
+            Checks for a valid default guild id and invite link, set in config.ini
+
+        :return: validity of config file : bool
+        """
+        guild_id_length = 18
 
         settings = self.read_config('BOT_SETTINGS')
         servers = self.read_config('SERVER_SETTINGS')
@@ -101,10 +106,14 @@ class ConfigUtil:
         is_link_valid = True if False not in [check in settings['invite_link'] for check in link_checks] else False
 
         # Check start guild id
-        is_guild_valid = True if len(str(list(servers.keys())[0])) == gulid_id_length else False
+        is_guild_valid = True if len(str(list(servers.keys())[0])) == guild_id_length else False
 
-        if not is_link_valid or not is_guild_valid:
+        if is_link_valid and is_guild_valid:
+            print("-*-*-*-*-*-*-*-* Tempo is Ready! *-*-*-*-*-*-*-*-*-*-")
+            print("\tRead from config!")
+        else:
             print(self.invalid_config_message)
+            print("Bot running in restricted mode, please update config and restart")
 
         return True if is_link_valid and is_guild_valid else False
 

@@ -35,15 +35,12 @@ async def on_ready():
     """
         Called when bot start-up has finished
     """
-    # Start-up messages
-    print("-*-*-*-*-*-*-*-* Tempo is Ready! *-*-*-*-*-*-*-*-*-*-")
     # Check config validity
     if not config.validate_config():
-        print("Bot running in restricted mode, please update config and restart")
         return
     server_settings = config.read_config('SERVER_SETTINGS')
-    print("\tRead from config!")
 
+    # Display table of connected guild information
     labels = ['Guild ID', 'Guild Name', 'Guild Owner', 'Prefix', 'Loop']
     info = [(guild.id,
              guild.name,
@@ -51,15 +48,14 @@ async def on_ready():
              server_settings[str(guild.id)]['prefix'],
              server_settings[str(guild.id)]['loop'])
             for guild in bot.guilds]
-
     length_list = [len(str(element)) for row in info for element in row]
     column_width = max(length_list)
-
     print(f"\tConnected to {len(bot.guilds)} servers.")
-    print('\t', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
+    print(' ', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
     for row in info:
-        print('\t', ' | '.join(str(element).rjust(column_width + 2) for element in row))
+        print(' ', ' | '.join(str(element).rjust(column_width + 2) for element in row))
 
+    # Check if bot is broken
     if config.read_config('BOT_SETTINGS')['broken']:
         await bot.change_presence(activity=nextcord.Activity(type=nextcord.ActivityType.watching, name="Maintenance"))
 
