@@ -253,3 +253,11 @@ class Util:
         :return:        Scrubed song title string
         """
         return ''.join(c for c in title if (c.isalnum() or c == ' '))
+
+    @staticmethod
+    def display_table(data, labels):
+        length_list = [len(str(element)) for row in data for element in row]
+        column_width = max(length_list)
+        print(' ', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
+        for row in data:
+            print(' ', ' | '.join(str(element).rjust(column_width + 2) for element in row))

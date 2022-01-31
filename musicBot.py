@@ -12,7 +12,7 @@ import nextcord
 
 from nextcord.ext import commands
 from dotenv import load_dotenv
-from lib.helpers.Utils import ConfigUtil
+from lib.helpers.Utils import ConfigUtil, Util
 
 # Create member vars
 config = ConfigUtil()
@@ -48,12 +48,8 @@ async def on_ready():
              server_settings[str(guild.id)]['prefix'],
              server_settings[str(guild.id)]['loop'])
             for guild in bot.guilds]
-    length_list = [len(str(element)) for row in info for element in row]
-    column_width = max(length_list)
     print(f"\tConnected to {len(bot.guilds)} servers.")
-    print(' ', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
-    for row in info:
-        print(' ', ' | '.join(str(element).rjust(column_width + 2) for element in row))
+    Util.display_table(info, labels)
 
     # Check if bot is broken
     if config.read_config('BOT_SETTINGS')['broken']:
