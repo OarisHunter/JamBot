@@ -4,7 +4,9 @@ import nextcord
 import random
 
 from datetime import datetime
+from typing import Tuple, Any
 from nextcord.ext import commands
+from nextcord.ext.commands import Context
 from lib.helpers.Utils import Util, ConfigUtil
 from lib.helpers.Embeds import Embeds
 from lib.helpers.SpotifyParser import SpotifyParser
@@ -39,7 +41,7 @@ class Commands(commands.Cog):
                       help='Connects Bot to Voice',
                       aliases=['p'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    async def play_(self, ctx, *, link, song_info=None, queue_position=None):
+    async def play_(self, ctx: Context, *, link: str, song_info: Tuple[Any] = None, queue_position: int = None):
         """
             Command to connect to voice
                 plays song
@@ -48,10 +50,10 @@ class Commands(commands.Cog):
                     from yt playlist link
                     from mix search
 
-        :param ctx:             Command context
-        :param link:            Given link :tuple
-        :param song_info:       Bypass song search if song info is already available
-        :param queue_position:  Position to place song in queue
+        :param ctx:             Command context: Context
+        :param link:            Given link: str
+        :param song_info:       Bypass song search if song info is already available: Tuple
+        :param queue_position:  Position to place song in queue: int
         :return:                None
         """
         await ctx.message.delete(delay=5)
@@ -93,12 +95,12 @@ class Commands(commands.Cog):
                       help="Inserts song into queue to be played next",
                       aliases=['insert'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    async def playnext_(self, ctx, *, link):
+    async def playnext_(self, ctx: Context, *, link: str):
         """
             Calls play with a parameter to insert the song into the front of the queue
 
-        :param ctx:     Discord message context
-        :param link:    Given link :tuple
+        :param ctx:     Discord message context: Context
+        :param link:    Given link: str
         :return:        None
         """
         await ctx.message.delete(delay=5)
@@ -162,11 +164,11 @@ class Commands(commands.Cog):
     @commands.command(name='clear',
                       help='Clears the Song Queue',
                       usage='')
-    async def clear_(self, ctx):
+    async def clear_(self, ctx: Context):
         """
             Command to clear server's Queue
 
-        :param ctx:     Command context
+        :param ctx:     Command context: Context
         :return:        None
         """
         try:
@@ -187,11 +189,11 @@ class Commands(commands.Cog):
     @commands.command(name='queue',
                       help='Displays the Queue',
                       usage='')
-    async def queue_(self, ctx):
+    async def queue_(self, ctx: Context):
         """
             Command to display songs in server's Queue
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -213,11 +215,11 @@ class Commands(commands.Cog):
     @commands.command(name='np',
                       help='Displays the currently playing song',
                       usage='')
-    async def now_playing_(self, ctx):
+    async def now_playing_(self, ctx: Context):
         """
             Command to display "Now Playing" message
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -242,11 +244,11 @@ class Commands(commands.Cog):
     @commands.command(name='pause',
                       help='Pauses currently playing song',
                       usage='')
-    async def pause_(self, ctx):
+    async def pause_(self, ctx: Context):
         """
             Pauses music to be resumed later
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -273,11 +275,11 @@ class Commands(commands.Cog):
     @commands.command(name='resume',
                       help='Resumes currently playing song',
                       usage='')
-    async def resume_(self, ctx):
+    async def resume_(self, ctx: Context):
         """
             Resumes paused music
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -303,11 +305,11 @@ class Commands(commands.Cog):
     @commands.command(name='disconnect',
                       help='Disconnects from Voice',
                       usage='')
-    async def disconnect_(self, ctx):
+    async def disconnect_(self, ctx: Context):
         """
             Command to disconnect bot from voice
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -338,12 +340,12 @@ class Commands(commands.Cog):
                       help='Displays or changes prefix for this server',
                       usage="[new prefix]")
     @commands.has_permissions(administrator=True)
-    async def prefix_(self, ctx, *prefix):
+    async def prefix_(self, ctx: Context, *prefix: Tuple[str]):
         """
             Command to change/display server defined prefix, maintain loop setting
 
-        :param ctx:     Command Context
-        :param prefix:  User entered prefix: tuple
+        :param ctx:     Command Context: Context
+        :param prefix:  User entered prefix: Tuple[str]
         :return:        None
         """
         config = ConfigUtil()
@@ -367,11 +369,11 @@ class Commands(commands.Cog):
     @commands.command(name='invite',
                       help='Shows invite link to add bot to your server',
                       usage='')
-    async def invite_(self, ctx):
+    async def invite_(self, ctx: Context):
         """
             Sends an embed with invite links to add bot to other servers.
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -384,15 +386,15 @@ class Commands(commands.Cog):
     @commands.command(name='search',
                       help=f'Searches with given keywords, displays top results',
                       usage="<keywords to search>")
-    async def search(self, ctx, *, keywords):
+    async def search(self, ctx: Context, *, keywords: str):
         """
             Searches Youtube for given keywords, displays the top 'x' results, allows user to select from list with
             button UI
 
             https://open.spotify.com/playlist/19SBkYmRd5KzPGKnE5djJ6?si=423e5a9f2dbc462c
 
-        :param ctx:         Discord message context
-        :param keywords:    User entered string
+        :param ctx:         Discord message context: Context
+        :param keywords:    User entered string: str
         :return:            None
         """
         await ctx.message.delete(delay=5)
@@ -417,11 +419,11 @@ class Commands(commands.Cog):
     @commands.command(name='shuffle',
                       help='Shuffles the queue',
                       usage='')
-    async def shuffle_(self, ctx):
+    async def shuffle_(self, ctx: Context):
         """
             Shuffles the server song queue
 
-        :param ctx:     Discord message context
+        :param ctx:     Discord message context: Context
         :return:        None
         """
         try:
@@ -449,12 +451,12 @@ class Commands(commands.Cog):
     @commands.command(name='remove',
                       help='Removes a specific song from the queue',
                       usage='<number of song in queue>')
-    async def removesong_(self, ctx, num: int):
+    async def removesong_(self, ctx: Context, num: int):
         """
             Removes a specific song from the queue
 
-        :param ctx:     Discord message context
-        :param num:     Song index of song to delete from the queue, starts at 1
+        :param ctx:     Discord message context: Context
+        :param num:     Song index of song to delete from the queue, starts at 1: int
         :return:        None
         """
         try:
@@ -486,12 +488,12 @@ class Commands(commands.Cog):
     @commands.command(name='loop',
                       help='Toggles loop mode for the song queue',
                       usage='')
-    async def loop_(self, ctx):
+    async def loop_(self, ctx: Context):
         """
             Toggles the loop function of the song queue,
             preventing songs from being removed from the queue
 
-        :param ctx:     Discord Message context
+        :param ctx:     Discord Message context: Context
         :return:        None
         """
         try:
@@ -518,12 +520,12 @@ class Commands(commands.Cog):
     @commands.command(name='mix',
                       help='Searches for an artist and queues their songs',
                       usage='<artist name>')
-    async def mix_(self, ctx, *, artist_name):
+    async def mix_(self, ctx: Context, *, artist_name: str):
         """
             Builds a playlist from all available songs by an artist from spotify
 
-        :param ctx:             Discord message context
-        :param artist_name:     User input of spotify artist
+        :param ctx:             Discord message context: Context
+        :param artist_name:     User input of spotify artist: str
         :return:                None
         """
         try:
@@ -550,11 +552,11 @@ class Commands(commands.Cog):
     @commands.command(name='doom',
                       help='Plays DOOM game music on loop until disconnect',
                       usage='')
-    async def doom_(self, ctx):
+    async def doom_(self, ctx: Context):
         """
             Loops music from the DOOM game indefinitely
 
-        :param ctx:     Discord message context
+        :param ctx:     Discord message context: Context
         :return:        None
         """
         await ctx.message.delete(delay=5)
@@ -604,11 +606,11 @@ class Commands(commands.Cog):
                 await self.queues.play_music_(ctx)
 
     @commands.command(name='help')
-    async def help_(self, ctx):
+    async def help_(self, ctx: Context):
         """
             Custom help command
 
-        :param ctx:     Command Context
+        :param ctx:     Command Context: Context
         :return:        None
         """
         try:
@@ -623,12 +625,12 @@ class Commands(commands.Cog):
         await ctx.channel.send(embed=self.embeds.broken_embed(), delete_after=30)
 
     @play_.error
-    async def play_handler(self, ctx, error):
+    async def play_handler(self, ctx: Context, error: Exception):
         """
             Local error handler for play command
 
-        :param ctx:     nextcord command context
-        :param error:   The exception raised
+        :param ctx:     nextcord command context: Context
+        :param error:   The exception raised: Exception
         :return:        None
         """
         if isinstance(error, commands.MissingRequiredArgument):
@@ -636,7 +638,7 @@ class Commands(commands.Cog):
                 await ctx.channel.send("You forgot to add search keywords or a link!")
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: Context, error: Exception):
         """
             The event triggered when an error is raised while invoking a command
 
