@@ -276,6 +276,46 @@ class Embeds:
 
         return embed
 
+    def generate_lyrics(self, ctx, lyrics, title, artist, page):
+        """
+            Generates embed for "Queue" messages
+
+        :param ctx:     Command Context: Context
+        :param lyrics:  Lyrics lines list: List[str]
+        :param title:   track title: str
+        :param artist:  track artist: str
+        :param page:    page of queue to display: int
+        :return:        nextcord Embed: Embed
+        """
+        embed = Embed(title="Lyrics", color=self.embed_theme)
+        embed.set_thumbnail(url=self.bot.user.display_avatar)
+        # Break lyrics into pages
+        lyrics.append('[end]')
+        lyrics_pages = []
+        lyrics_page = []
+        for line in range(len(lyrics)):
+            if '[end]' == lyrics[line + 1]:
+                break
+            elif '[' and ']' in lyrics[line + 1]:
+                lyrics_page.append(lyrics[line])
+                lyrics_pages.append(lyrics_page)
+                lyrics_page = []
+            else:
+                lyrics_page.append(lyrics[line])
+
+        # Build message to display
+        embed.add_field(name=''.join(word.capitalize() for word in title),
+                        value=''.join(word.capitalize() for word in artist),
+                        inline=False)
+
+        embed.add_field(name=f"{lyrics_pages[page][0]}",
+                        value=''.join(f'{line}\n' for line in lyrics_pages[page][1:]),
+                        inline=False)
+
+        embed.set_footer(text=f'Page {page + 1}/{len(lyrics_pages)}')
+
+        return embed, len(lyrics_pages)
+
     def doom_embed(self, ctx):
         """
             Generates response to DOOM command

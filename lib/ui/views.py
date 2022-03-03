@@ -234,3 +234,36 @@ class QueueView(PageView):
         embed, self.num_pages = self.embeds.generate_display_queue(self.ctx, self.queue, self.current_page)
         await self.message.edit(embed=embed,
                                 view=self)
+
+
+class LyricsView(PageView):
+    def __init__(self, bot, ctx, lyrics, title, artist, timeout):
+        super().__init__(bot, ctx, timeout=timeout)
+        self.ctx = ctx
+        self.num_pages = 0
+        self.current_page = 0
+        self.message = None
+        self.embeds = Embeds(bot)
+        self.lyrics = lyrics
+        self.title = title
+        self.artist = artist
+
+    async def create_message(self):
+        """
+            Creates a starting queue message
+
+        :return:    None
+        """
+        embed, self.num_pages = self.embeds.generate_lyrics(self.ctx, self.lyrics, self.title, self.artist, self.current_page)
+        self.message = await self.ctx.channel.send(embed=embed,
+                                                   view=self)
+
+    async def update_message(self):
+        """
+            Updates message with new page
+
+        :return:    None
+        """
+        embed, self.num_pages = self.embeds.generate_lyrics(self.ctx, self.lyrics, self.title, self.artist, self.current_page)
+        await self.message.edit(embed=embed,
+                                view=self)

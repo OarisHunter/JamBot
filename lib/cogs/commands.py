@@ -13,6 +13,7 @@ from lib.helpers.SpotifyParser import SpotifyParser
 from lib.helpers.SongQueue import SongQueue
 from lib.helpers.SongSearch import SongSearch
 from lib.ui import views
+from lib.helpers.LyricsParser import LyricsParser
 
 
 class Commands(commands.Cog):
@@ -549,9 +550,7 @@ class Commands(commands.Cog):
             song_info = search.get_artist_all_tracks(artist_uri)
             await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
 
-    @commands.command(name='doom',
-                      help='Plays DOOM game music on loop until disconnect',
-                      usage='')
+    @commands.command(name='doom')
     async def doom_(self, ctx: Context):
         """
             Loops music from the DOOM game indefinitely
@@ -604,6 +603,30 @@ class Commands(commands.Cog):
             # Play song if not playing a song
             if not vc.is_playing():
                 await self.queues.play_music_(ctx)
+
+    @commands.command(name='lyrics',
+                      help="Finds the lyrics for a song",
+                      usage="<song title>, <artist name>    NOTE: comma is required!")
+    async def lyrics_(self, ctx: Context, *, arg):
+        try:
+            await ctx.message.delete(delay=5)
+            if self.broken:
+                await self.broken_(ctx)
+                return
+
+            # split args into title and artist
+            title = arg.split(',')[0].strip()
+            artist = arg.split(',')[1].strip()
+
+            parser = LyricsParser()
+            lyrics = parser.get_lyrics_list(title, artist)
+
+            view = views.LyricsView(self.bot, ctx, lyrics, title, artist, self.view_timeout)
+            await view.create_message()
+            await view.wait()
+
+        except nextcord.DiscordException:
+            pass
 
     @commands.command(name='help')
     async def help_(self, ctx: Context):

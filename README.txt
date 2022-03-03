@@ -38,6 +38,8 @@ FEATURES
     - Multi-skip.
     - Remove specific song in queue.
     - Loop.
+    - Lyrics finder
+    - Easter egg
 
 ------------------------------------------------------------------------------------------------------------------------
 
