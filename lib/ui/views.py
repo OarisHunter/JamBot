@@ -2,6 +2,8 @@
 
 import nextcord
 
+from nextcord import Interaction, ui
+from nextcord.ext.commands import Bot, Context
 from lib.helpers.Utils import ConfigUtil
 from lib.helpers.Embeds import Embeds
 
@@ -22,7 +24,7 @@ class SearchView(nextcord.ui.View):
         # Create buttons on object creation
         self.add_buttons()
 
-    def add_buttons(self):
+    def add_buttons(self) -> None:
         """
             Dynamically create buttons to choose a song from search command embed
 
@@ -33,12 +35,12 @@ class SearchView(nextcord.ui.View):
         for i in button_list:
             self.add_item(i)
 
-    async def interaction_check(self, interaction):
+    async def interaction_check(self, interaction: Interaction) -> None:
         """
             Overwrites method from super class
             Gets custom id of clicked button and stops view to allow command to continue
 
-        :param interaction:     Discord Interaction
+        :param interaction:     Discord Interaction: Interaction
         :return:                None
         """
         self.value = int(interaction.data['custom_id'])
@@ -51,12 +53,12 @@ class ConfirmView(nextcord.ui.View):
 
         Creates confirm and cancel buttons
     """
-    def __init__(self, timeout):
+    def __init__(self, timeout: int):
         super().__init__(timeout=timeout)
         self.value = None
 
     @nextcord.ui.button(label='Confirm', style=nextcord.ButtonStyle.green)
-    async def confirm_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def confirm_(self, button: ui.Button, interaction: Interaction) -> None:
         """
             Button to Confirm option
 
@@ -68,7 +70,7 @@ class ConfirmView(nextcord.ui.View):
         self.stop()
 
     @nextcord.ui.button(label='Cancel', style=nextcord.ButtonStyle.red)
-    async def cancel_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def cancel_(self, button: ui.Button, interaction: Interaction) -> None:
         """
             Button to Cancel option
 
@@ -79,7 +81,7 @@ class ConfirmView(nextcord.ui.View):
         self.value = False
         self.stop()
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         self.stop()
 
 
@@ -87,7 +89,7 @@ class PageView(nextcord.ui.View):
     """
         Discord View that supplies page buttons to children classes.
     """
-    def __init__(self, bot, ctx, timeout):
+    def __init__(self, bot: Bot, ctx: Context, timeout: int):
         super().__init__(timeout=timeout)
         self.ctx = ctx
         self.num_pages = 0
@@ -96,7 +98,7 @@ class PageView(nextcord.ui.View):
         self.embeds = Embeds(bot)
 
     @nextcord.ui.button(label='<<', style=nextcord.ButtonStyle.gray)
-    async def first_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def first_(self, button: ui.Button, interaction: Interaction) -> None:
         """
             Button to switch to first page
 
@@ -108,7 +110,7 @@ class PageView(nextcord.ui.View):
         await self.update_message()
 
     @nextcord.ui.button(label='<', style=nextcord.ButtonStyle.gray)
-    async def prev_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def prev_(self, button: ui.Button, interaction: Interaction) -> None:
         """
             Button to switch to previous page
 
@@ -120,7 +122,7 @@ class PageView(nextcord.ui.View):
         await self.update_message()
 
     @nextcord.ui.button(label='>', style=nextcord.ButtonStyle.gray)
-    async def next_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def next_(self, button: ui.Button, interaction: Interaction) -> None:
         """
             Button to switch to next page
 
@@ -132,7 +134,7 @@ class PageView(nextcord.ui.View):
         await self.update_message()
 
     @nextcord.ui.button(label='>>', style=nextcord.ButtonStyle.gray)
-    async def last_(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def last_(self, button: ui.Button, interaction: Interaction) -> None:
         """
             Button to switch to last page
 
@@ -143,7 +145,7 @@ class PageView(nextcord.ui.View):
         self.current_page = self.num_pages - 1
         await self.update_message()
 
-    async def create_message(self):
+    async def create_message(self) -> None:
         """
             Creates a starting message, must be overwritten
 
@@ -151,7 +153,7 @@ class PageView(nextcord.ui.View):
         """
         pass
 
-    async def update_message(self):
+    async def update_message(self) -> None:
         """
             Updates message with new page, must be overwritten
 
@@ -159,7 +161,7 @@ class PageView(nextcord.ui.View):
         """
         pass
 
-    async def on_timeout(self):
+    async def on_timeout(self) -> None:
         """
             Deletes message and returns to command call
 
@@ -181,7 +183,7 @@ class HelpView(PageView):
         self.message = None
         self.embeds = Embeds(bot)
 
-    async def create_message(self):
+    async def create_message(self) -> None:
         """
             Creates a starting help message
 
@@ -191,7 +193,7 @@ class HelpView(PageView):
         self.message = await self.ctx.channel.send(embed=embed,
                                                    view=self)
 
-    async def update_message(self):
+    async def update_message(self) -> None:
         """
             Updates message with new page
 
@@ -206,7 +208,7 @@ class QueueView(PageView):
     """
         Discord View to generate the queue message and create a UI, displays commands in a page format.
     """
-    def __init__(self, bot, ctx, queue, timeout):
+    def __init__(self, bot: Bot, ctx: Context, queue: list, timeout: int):
         super().__init__(bot, ctx, timeout=timeout)
         self.ctx = ctx
         self.num_pages = 0
@@ -215,7 +217,7 @@ class QueueView(PageView):
         self.embeds = Embeds(bot)
         self.queue = queue
 
-    async def create_message(self):
+    async def create_message(self) -> None:
         """
             Creates a starting queue message
 
@@ -225,7 +227,7 @@ class QueueView(PageView):
         self.message = await self.ctx.channel.send(embed=embed,
                                                    view=self)
 
-    async def update_message(self):
+    async def update_message(self) -> None:
         """
             Updates message with new page
 
@@ -237,7 +239,7 @@ class QueueView(PageView):
 
 
 class LyricsView(PageView):
-    def __init__(self, bot, ctx, lyrics, title, artist, timeout):
+    def __init__(self, bot: Bot, ctx: Context, lyrics: list, title: str, artist: str, timeout: timeout):
         super().__init__(bot, ctx, timeout=timeout)
         self.ctx = ctx
         self.num_pages = 0
@@ -248,7 +250,7 @@ class LyricsView(PageView):
         self.title = title
         self.artist = artist
 
-    async def create_message(self):
+    async def create_message(self) -> None:
         """
             Creates a starting queue message
 
@@ -258,7 +260,7 @@ class LyricsView(PageView):
         self.message = await self.ctx.channel.send(embed=embed,
                                                    view=self)
 
-    async def update_message(self):
+    async def update_message(self) -> None:
         """
             Updates message with new page
 

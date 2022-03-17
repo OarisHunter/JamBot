@@ -3,6 +3,8 @@
 import spotipy
 import os
 
+from nextcord import Member
+from typing import Union, List, Tuple
 from lib.helpers.Utils import Util
 from spotipy import SpotifyClientCredentials
 
@@ -11,14 +13,14 @@ class SpotifyParser:
         Spotify request parsing wrapper
     """
 
-    def __init__(self, author):
+    def __init__(self, author: Member):
         self.author = author
         self.utilities = Util()
         self.sp = spotipy.Spotify(
             client_credentials_manager=SpotifyClientCredentials(client_id=os.getenv('SPOTIFY_CID'),
                                                                 client_secret=os.getenv('SPOTIFY_SECRET')))
 
-    def parse_link(self, link):
+    def parse_link(self, link: str):
         """
             Wrapper to pass link to correct parsing type
 
@@ -40,7 +42,7 @@ class SpotifyParser:
             is_track = True
         return song_info, is_track
 
-    def parse_playlist(self, link):
+    def parse_playlist(self, link: str) -> List[Tuple[str, Member]]:
         """
             Parses spotify playlist
 
@@ -65,7 +67,7 @@ class SpotifyParser:
             offset = offset + len(response['items'])
         return result
 
-    def parse_album(self, link):
+    def parse_album(self, link: str) -> List[Tuple[str, Member]]:
         """
             Parses spotify album
 
@@ -84,7 +86,7 @@ class SpotifyParser:
                 result.append((f'{title} {artist}', self.author))
         return result
 
-    def parse_track(self, link):
+    def parse_track(self, link: str) -> dict:
         """
             Parses spotify track
 
@@ -100,20 +102,19 @@ class SpotifyParser:
                 artist = 'song'
             song_info = Util().download_from_yt(f'{title} {artist}')
             return song_info[0] if type(song_info) == list else song_info
-        return None
 
-    def artist_search(self, query):
+    def artist_search(self, query: str) -> List[Tuple[str, str]]:
         response = self.sp.search(q=query, type='artist', limit=5)
         results = [(artist['name'], artist['uri'].split(':')[2]) for artist in response['artists']['items']]
         return results
 
-    def get_artist_top_tracks(self, artist_uri):
+    def get_artist_top_tracks(self, artist_uri: str) -> List[Tuple[str, Member]]:
         response = self.sp.artist_top_tracks(artist_uri, country='US')
         return [(f"{self.utilities.scrub_song_title(track['name'])} {track['artists'][0]['name']}",
                  self.author)
                 for track in response['tracks']]
 
-    def get_artist_all_tracks(self, artist_uri):
+    def get_artist_all_tracks(self, artist_uri: str) -> List[Tuple[str, Member]]:
         response = self.sp.artist_albums(artist_uri, album_type='album,single', limit=50, country='US')
         return [(f"{self.utilities.scrub_song_title(album_track['name'])} {album_track['artists'][0]['name']}",
                  self.author)

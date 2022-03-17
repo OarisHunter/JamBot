@@ -5,8 +5,9 @@ import random
 
 from datetime import datetime
 from typing import Tuple, Any
+from nextcord import VoiceProtocol
 from nextcord.ext import commands
-from nextcord.ext.commands import Context
+from nextcord.ext.commands import Context, Bot
 from lib.helpers.Utils import Util, ConfigUtil
 from lib.helpers.Embeds import Embeds
 from lib.helpers.SpotifyParser import SpotifyParser
@@ -21,7 +22,7 @@ class Commands(commands.Cog):
         nextcord Cog for command handling
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.queues = SongQueue(bot)
         self.utilities = Util()
@@ -57,46 +58,50 @@ class Commands(commands.Cog):
         :param queue_position:  Position to place song in queue: int
         :return:                None
         """
-        await ctx.message.delete(delay=5)
-        if self.broken:
-            await self.broken_(ctx)
-            return
-
-        # Check that author is in a voice channel
-        if ctx.author.voice is None:
-            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
-
-        # Pass link to parser to determine origin
-        if not song_info:
-            song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
+        try:
+            await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
         else:
-            from_youtube = False
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
-        # Check that author is in a voice channel
-        if ctx.author.voice is not None:
-            try:
-                # Connect to channel of author
-                vc = await ctx.author.voice.channel.connect()
-            except nextcord.DiscordException:
-                # Catch error if already connected
-                vc = ctx.guild.voice_client
-        else:
-            print(f"Play: Bot not connected to {ctx.guild.name}")
-            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+            # Pass link to parser to determine origin
+            if not song_info:
+                song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
+            else:
+                from_youtube = False
 
-        if song_info:
-            # Add song(s) to queue from song info
-            await self.queues.add_song_to_queue(ctx, song_info, from_youtube=from_youtube, queue_position=queue_position)
+            # Check that author is in a voice channel
+            if ctx.author.voice is not None:
+                try:
+                    # Connect to channel of author
+                    vc = await ctx.author.voice.channel.connect()
+                except nextcord.DiscordException:
+                    # Catch error if already connected
+                    vc = ctx.guild.voice_client
+            else:
+                print(f"Play: Bot not connected to {ctx.guild.name}")
+                return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
-            # Play song if not playing a song
-            if not vc.is_playing():
-                await self.queues.play_music_(ctx)
+            if song_info:
+                # Add song(s) to queue from song info
+                await self.queues.add_song_to_queue(ctx,
+                                                    song_info,
+                                                    from_youtube=from_youtube,
+                                                    queue_position=queue_position)
+
+                # Play song if not playing a song
+                if not vc.is_playing():
+                    await self.queues.play_music_(ctx)
 
     @commands.command(name='playnext',
                       help="Inserts song into queue to be played next",
                       aliases=['insert'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    async def playnext_(self, ctx: Context, *, link: str):
+    async def play_next_(self, ctx: Context, *, link: str):
         """
             Calls play with a parameter to insert the song into the front of the queue
 
@@ -104,12 +109,17 @@ class Commands(commands.Cog):
         :param link:    Given link: str
         :return:        None
         """
-        await ctx.message.delete(delay=5)
-        if self.broken:
-            await self.broken_(ctx)
-            return
+        try:
+            await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
-        await ctx.invoke(self.bot.get_command('play'), link=link, queue_position=1)
+            await ctx.invoke(self.bot.get_command('play'), link=link, queue_position=1)
 
     @commands.command(name='skip',
                       help='Skips to next Song in Queue, will remove song from queue in loop mode',
@@ -125,6 +135,10 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -159,9 +173,6 @@ class Commands(commands.Cog):
                 vc.stop()
                 await ctx.channel.send("**Skipped a Song!**", delete_after=10)
 
-        except nextcord.DiscordException:
-            pass
-
     @commands.command(name='clear',
                       help='Clears the Song Queue',
                       usage='')
@@ -174,6 +185,10 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -183,9 +198,6 @@ class Commands(commands.Cog):
 
             # Send response
             await ctx.channel.send("**Cleared the Queue!**", delete_after=20)
-
-        except nextcord.DiscordException:
-            pass
 
     @commands.command(name='queue',
                       help='Displays the Queue',
@@ -199,19 +211,21 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
-        except nextcord.DiscordException:
-            pass
 
-        song_queue = self.queues.get_queue(ctx.guild.id)
-        if song_queue:
-            view = views.QueueView(self.bot, ctx, song_queue, self.view_timeout)
-            await view.create_message()
-            await view.wait()
-        else:
-            await ctx.channel.send('**Queue is empty!**', delete_after=10)
+            song_queue = self.queues.get_queue(ctx.guild.id)
+            if song_queue:
+                view = views.QueueView(self.bot, ctx, song_queue, self.view_timeout)
+                await view.create_message()
+                await view.wait()
+            else:
+                await ctx.channel.send('**Queue is empty!**', delete_after=10)
 
     @commands.command(name='np',
                       help='Displays the currently playing song',
@@ -225,6 +239,10 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -239,9 +257,6 @@ class Commands(commands.Cog):
                 print(f'NowPlaying: Not in a Voice Channel in {ctx.guild.name}')
                 await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
-        except nextcord.DiscordException:
-            pass
-
     @commands.command(name='pause',
                       help='Pauses currently playing song',
                       usage='')
@@ -254,24 +269,26 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
 
-            vc = ctx.guild.voice_client
+            vc = ctx.voice_client
 
-            if vc.is_connected() and vc.is_playing():
-                vc.pause()
-                await ctx.channel.send(f'**Music Paused!**', delete_after=10)
-            elif vc.is_connected() and vc.is_paused():
-                await ctx.channel.send(f'Already Paused', delete_after=10)
-            elif vc.is_connected() and not vc.is_playing():
-                await ctx.channel.send(f'Not Playing Anything', delete_after=10)
+            if type(vc) == VoiceProtocol:
+                if vc.is_connected() and vc.is_playing():
+                    vc.pause()
+                    await ctx.channel.send(f'**Music Paused!**', delete_after=10)
+                elif vc.is_connected() and vc.is_paused():
+                    await ctx.channel.send(f'Already Paused', delete_after=10)
+                elif vc.is_connected() and not vc.is_playing():
+                    await ctx.channel.send(f'Not Playing Anything', delete_after=10)
             else:
                 await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
-
-        except nextcord.DiscordException:
-            pass
 
     @commands.command(name='resume',
                       help='Resumes currently playing song',
@@ -285,23 +302,26 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
-        except nextcord.DiscordException:
-            pass
 
-        vc = ctx.guild.voice_client
+            vc = ctx.guild.voice_client
 
-        if vc.is_connected() and vc.is_paused():
-            vc.resume()
-            await ctx.channel.send(f'**Music Resumed!**', delete_after=10)
-        elif vc.is_connected() and vc.is_playing():
-            await ctx.channel.send(f'Already Playing', delete_after=10)
-        elif vc.is_connected() and not vc.is_paused():
-            await ctx.channel.send(f'Not Playing Anything', delete_after=10)
-        else:
-            await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
+            if type(vc) == VoiceProtocol:
+                if vc.is_connected() and vc.is_paused():
+                    vc.resume()
+                    await ctx.channel.send(f'**Music Resumed!**', delete_after=10)
+                elif vc.is_connected() and vc.is_playing():
+                    await ctx.channel.send(f'Already Playing', delete_after=10)
+                elif vc.is_connected() and not vc.is_paused():
+                    await ctx.channel.send(f'Not Playing Anything', delete_after=10)
+            else:
+                await ctx.channel.send(f'Not in a Voice Channel', delete_after=10)
 
     @commands.command(name='disconnect',
                       help='Disconnects from Voice',
@@ -315,6 +335,10 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -323,7 +347,7 @@ class Commands(commands.Cog):
 
             # Check that the bot is connected to voice
             if vc and vc.is_connected():
-                await vc.disconnect()
+                await vc.disconnect(force=False)
 
             # Clear song queue
             self.queues.clear_queue(ctx.guild.id)
@@ -333,9 +357,6 @@ class Commands(commands.Cog):
             server = server_settings[str(ctx.guild.id)]
             server['loop'] = False
             self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
-
-        except nextcord.DiscordException:
-            pass
 
     @commands.command(name='prefix',
                       help='Displays or changes prefix for this server',
@@ -349,23 +370,33 @@ class Commands(commands.Cog):
         :param prefix:  User entered prefix: Tuple[str]
         :return:        None
         """
-        config = ConfigUtil()
-        prefix = self.utilities.tuple_to_string(prefix)
-
-        # If a prefix was given, change the prefix, otherwise display the current prefix
-        if prefix and len(prefix) < 2:
-            # Update config file
-            settings = config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]
-            settings['prefix'] = str(''.join(prefix))
-            config.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), settings)
-
-            await ctx.channel.send(f"Prefix for {ctx.guild.name} has been changed to: "
-                                   f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
-                                   delete_after=10)
+        try:
+            await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
         else:
-            await ctx.channel.send(f"Prefix for {ctx.guild.name} is: "
-                                   f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
-                                   delete_after=10)
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
+
+            config = ConfigUtil()
+            prefix = self.utilities.tuple_to_string(prefix)
+
+            # If a prefix was given, change the prefix, otherwise display the current prefix
+            if prefix and len(prefix) < 2:
+                # Update config file
+                settings = config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]
+                settings['prefix'] = str(''.join(prefix))
+                config.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), settings)
+
+                await ctx.channel.send(f"Prefix for {ctx.guild.name} has been changed to: "
+                                       f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
+                                       delete_after=10)
+            else:
+                await ctx.channel.send(f"Prefix for {ctx.guild.name} is: "
+                                       f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
+                                       delete_after=10)
 
     @commands.command(name='invite',
                       help='Shows invite link to add bot to your server',
@@ -381,8 +412,13 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             pass
+        else:
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
-        await ctx.channel.send(embed=self.embeds.generate_invite(ctx))
+            await ctx.channel.send(embed=self.embeds.generate_invite(ctx))
 
     @commands.command(name='search',
                       help=f'Searches with given keywords, displays top results',
@@ -398,24 +434,30 @@ class Commands(commands.Cog):
         :param keywords:    User entered string: str
         :return:            None
         """
-        await ctx.message.delete(delay=5)
-        if self.broken:
-            await self.broken_(ctx)
-            return
-        search = SongSearch()
-        view = views.SearchView()
+        try:
+            await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
-        results = search.search_yt(keywords)
+            search = SongSearch()
+            view = views.SearchView()
 
-        message = await ctx.channel.send(embed=self.embeds.generate_search_embed(ctx, results),
-                                         view=view)
+            results = search.search_yt(keywords)
 
-        isTimeout = await view.wait()
-        await message.delete()
+            message = await ctx.channel.send(embed=self.embeds.generate_search_embed(ctx, results),
+                                             view=view)
 
-        if not isTimeout:
-            selected_song = results[view.value]
-            await ctx.invoke(self.bot.get_command('play'), link=selected_song[1])
+            is_timeout = await view.wait()
+            await message.delete()
+
+            if not is_timeout:
+                selected_song = results[view.value]
+                await ctx.invoke(self.bot.get_command('play'), link=selected_song[1])
 
     @commands.command(name='shuffle',
                       help='Shuffles the queue',
@@ -429,6 +471,10 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -446,13 +492,11 @@ class Commands(commands.Cog):
                 await ctx.invoke(self.bot.get_command('queue'))
             else:
                 await ctx.channel.send(f'Nothing in the Queue!', delete_after=10)
-        except nextcord.DiscordException:
-            pass
 
     @commands.command(name='remove',
                       help='Removes a specific song from the queue',
                       usage='<number of song in queue>')
-    async def removesong_(self, ctx: Context, num: int):
+    async def remove_song_(self, ctx: Context, num: int):
         """
             Removes a specific song from the queue
 
@@ -462,6 +506,10 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -472,8 +520,8 @@ class Commands(commands.Cog):
                 view = views.ConfirmView(self.view_timeout)
                 message = await ctx.channel.send(embed=self.embeds.generate_remove_embed(ctx, pending_song),
                                                  view=view)
-                isTimeout = await view.wait()
-                if not isTimeout:
+                is_timeout = await view.wait()
+                if not is_timeout:
                     if view.value:
                         song_queue.pop(num - 1)
                         await ctx.channel.send("**Song Deleted!**", delete_after=10)
@@ -482,9 +530,6 @@ class Commands(commands.Cog):
                         await ctx.channel.send("**Canceled!**", delete_after=10)
                 await message.delete()
                 await ctx.invoke(self.bot.get_command('queue'))
-
-        except nextcord.DiscordException:
-            pass
 
     @commands.command(name='loop',
                       help='Toggles loop mode for the song queue',
@@ -499,24 +544,26 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
-        except nextcord.DiscordException:
-            pass
 
-        server_settings = self.config_obj.read_config("SERVER_SETTINGS")
-        server = server_settings[str(ctx.guild.id)]
+            server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+            server = server_settings[str(ctx.guild.id)]
 
-        # Toggle server loop setting
-        if server['loop']:
-            server['loop'] = False
+            # Toggle server loop setting
+            if server['loop']:
+                server['loop'] = False
 
-        elif not server['loop']:
-            server['loop'] = True
+            elif not server['loop']:
+                server['loop'] = True
 
-        await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
-        self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+            await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
+            self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
     @commands.command(name='mix',
                       help='Searches for an artist and queues their songs',
@@ -531,24 +578,27 @@ class Commands(commands.Cog):
         """
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
-        except nextcord.DiscordException:
-            pass
-        search = SpotifyParser(ctx.message.author)
 
-        view = views.SearchView()
-        artists = search.artist_search(artist_name)
-        message = await ctx.channel.send(embed=self.embeds.generate_mix_embed(ctx, artists),
-                                         view=view)
-        isTimeout = await view.wait()
-        await message.delete()
+            search = SpotifyParser(ctx.message.author)
 
-        if not isTimeout:
-            _, artist_uri = artists[view.value]
-            song_info = search.get_artist_all_tracks(artist_uri)
-            await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
+            view = views.SearchView()
+            artists = search.artist_search(artist_name)
+            message = await ctx.channel.send(embed=self.embeds.generate_mix_embed(ctx, artists),
+                                             view=view)
+            is_timeout = await view.wait()
+            await message.delete()
+
+            if not is_timeout:
+                _, artist_uri = artists[view.value]
+                song_info = search.get_artist_all_tracks(artist_uri)
+                await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
 
     @commands.command(name='doom')
     async def doom_(self, ctx: Context):
@@ -558,51 +608,52 @@ class Commands(commands.Cog):
         :param ctx:     Discord message context: Context
         :return:        None
         """
-        await ctx.message.delete(delay=5)
-        if self.broken:
-            await self.broken_(ctx)
-            return
-
-        await ctx.channel.send(embed=self.embeds.doom_embed(ctx), delete_after=20)
-
-        # Check that author is in a voice channel
-        if ctx.author.voice is None:
-            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
-
-        # Pass link to parser to determine origin
-        link = self.doom_playlist
-        song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
-
-        # Check that author is in a voice channel
-        if ctx.author.voice is not None:
-            try:
-                # Connect to channel of author
-                vc = await ctx.author.voice.channel.connect()
-            except nextcord.DiscordException:
-                # Catch error if already connected
-                vc = ctx.guild.voice_client
+        try:
+            await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
         else:
-            print(f"Play: Bot not connected to {ctx.guild.name}")
-            return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
 
-        if song_info:
-            # Add song(s) to queue from song info
-            await self.queues.add_song_to_queue(ctx, song_info, from_youtube=from_youtube)
+            await ctx.channel.send(embed=self.embeds.doom_embed(ctx), delete_after=20)
 
-            # Shuffle queue
-            song_queue = self.queues.get_queue(ctx.guild.id)
-            if len(song_queue) > 1:
-                random.shuffle(song_queue)
+            # Pass link to parser to determine origin
+            link = self.doom_playlist
+            song_info, from_youtube = await self.queues.extract_song_info(ctx, link)
 
-            # Toggle server loop setting
-            server_settings = self.config_obj.read_config("SERVER_SETTINGS")
-            server = server_settings[str(ctx.guild.id)]
-            server['loop'] = True
-            self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+            # Check that author is in a voice channel
+            if ctx.author.voice is not None:
+                try:
+                    # Connect to channel of author
+                    vc = await ctx.author.voice.channel.connect()
+                except nextcord.DiscordException:
+                    # Catch error if already connected
+                    vc = ctx.guild.voice_client
+            else:
+                print(f"Play: Bot not connected to {ctx.guild.name}")
+                return await ctx.channel.send("Not in a Voice Channel", delete_after=10)
 
-            # Play song if not playing a song
-            if not vc.is_playing():
-                await self.queues.play_music_(ctx)
+            if song_info:
+                # Add song(s) to queue from song info
+                await self.queues.add_song_to_queue(ctx, song_info, from_youtube=from_youtube)
+
+                # Shuffle queue
+                song_queue = self.queues.get_queue(ctx.guild.id)
+                if len(song_queue) > 1:
+                    random.shuffle(song_queue)
+
+                # Toggle server loop setting
+                server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+                server = server_settings[str(ctx.guild.id)]
+                server['loop'] = True
+                self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+
+                # Play song if not playing a song
+                if not vc.is_playing():
+                    await self.queues.play_music_(ctx)
 
     @commands.command(name='lyrics',
                       help="Finds the lyrics for a song",
@@ -610,6 +661,10 @@ class Commands(commands.Cog):
     async def lyrics_(self, ctx: Context, *, arg):
         try:
             await ctx.message.delete(delay=5)
+        except nextcord.DiscordException:
+            pass
+        else:
+            # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
@@ -625,9 +680,6 @@ class Commands(commands.Cog):
             await view.create_message()
             await view.wait()
 
-        except nextcord.DiscordException:
-            pass
-
     @commands.command(name='help')
     async def help_(self, ctx: Context):
         """
@@ -640,9 +692,15 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             pass
-        view = views.HelpView(self.bot, ctx, self.view_timeout)
-        await view.create_message()
-        await view.wait()
+        else:
+            # Skip command if bot is broken
+            if self.broken:
+                await self.broken_(ctx)
+                return
+
+            view = views.HelpView(self.bot, ctx, self.view_timeout)
+            await view.create_message()
+            await view.wait()
 
     async def broken_(self, ctx):
         await ctx.channel.send(embed=self.embeds.broken_embed(), delete_after=30)
@@ -665,7 +723,7 @@ class Commands(commands.Cog):
         """
             The event triggered when an error is raised while invoking a command
 
-        :param ctx:     Nextcord message context of command
+        :param ctx:     nextcord message context of command
         :param error:   The exception raised
         :return:        None
         """
@@ -690,7 +748,7 @@ class Commands(commands.Cog):
 
         # Handling common individual cases
         if isinstance(error, commands.CommandNotFound):
-            await ctx.channel.send(f"**Command Not Found!**\nTry {ConfigUtil().get_prefix(ctx, ctx)}help",
+            await ctx.channel.send(f"**Command Not Found!**\nTry {ConfigUtil().get_prefix(ctx, ctx.message)}help",
                                    delete_after=10)
 
         elif isinstance(error, commands.DisabledCommand):
@@ -711,7 +769,7 @@ class Commands(commands.Cog):
             traceback.print_exception(type(error), error, error.__traceback__)
 
 
-def setup(bot):
+def setup(bot: Bot):
     # Required Function for Cog loading
     try:
         bot.add_cog(Commands(bot))

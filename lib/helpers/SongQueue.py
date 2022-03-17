@@ -3,6 +3,9 @@
 import nextcord
 import asyncio
 
+from typing import List, Union, Tuple
+from nextcord import Member
+from nextcord.ext.commands import Bot, Context
 from lib.helpers.Utils import Util, ConfigUtil
 from lib.helpers.Embeds import Embeds
 from lib.helpers.SpotifyParser import SpotifyParser
@@ -16,7 +19,7 @@ class SongQueue:
         Handles control functions of server song queues
     """
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.utilities = Util()
         self.embeds = Embeds(self.bot)
@@ -31,7 +34,7 @@ class SongQueue:
         # Call create server queue on creation to populate object with queues for previously connected servers
         self.create_server_queue()
 
-    def create_server_queue(self):
+    def create_server_queue(self) -> None:
         """
             Generate song queues for all servers
                 Non-Queue destructive
@@ -46,7 +49,7 @@ class SongQueue:
             if g_id not in self.server_queues:
                 self.server_queues[g_id] = []
 
-    def get_queue(self, guild_id):
+    def get_queue(self, guild_id: int) -> List[tuple]:
         """
             Get Server Queue from Queue Dict
 
@@ -55,23 +58,24 @@ class SongQueue:
         """
         return self.server_queues[str(guild_id)]
 
-    def clear_queue(self, guild_id):
+    def clear_queue(self, guild_id: int) -> None:
         """
             Clear Guilds song queue
 
-        :param guild_id:    Discord Guild ID
+        :param guild_id:    Discord Guild ID: int
         :return:            None
         """
         self.server_queues[str(guild_id)].clear()
 
-    def add_queue(self, guild_id, song_set, queue_position=None):
+    def add_queue(self, guild_id: int, song_set: Union[list, tuple], queue_position: int = None) -> None:
         """
             Helper function
             Add song to Server Queue in Queue Dict
 
-        :param guild_id:    guild id int
-        :param song_set:    song tuple / list of song tuples
-        :return:            None
+        :param guild_id:        guild id: int
+        :param song_set:        song tuple / list of song tuples: Union[list, tuple]
+        :param queue_position:  position to add the song/songs to: int
+        :return:                None
         """
         if not queue_position:
             # normally, we add the song to the end of the queue
@@ -86,17 +90,18 @@ class SongQueue:
             else:
                 self.server_queues[str(guild_id)].insert(1, song_set)
 
-    async def add_song_to_queue(self, ctx, song_info, from_youtube=True, queue_position=None):
+    async def add_song_to_queue(self, ctx: Context, song_info: Union[list, tuple, dict], from_youtube: bool = True,
+                                queue_position: int = None) -> None:
         """
             Add song(s) to queue
 
             If a song is from youtube, its song info should added to the queue from youtube in the following format
-                song = tuple:(string:title,
-                              string:url,
-                              string:web_page,
-                              string:ctx.message.author,
-                              int:duration,
-                              string:thumbnail)
+                song = tuple:(title: string,
+                              url: string,
+                              web_page: string,
+                              ctx.message.author: string,
+                              duration: int,
+                              thumbnail: string)
             If a song is from another source (Spotify, Soundcloud, etc.), the its song info
             should added to the queue from youtube in the following format:
                 song = "{song title} {artist}"
@@ -104,13 +109,14 @@ class SongQueue:
                 The song will then be downloaded from youtube when it is played.
                 NOTE: this means the song webpage/thumbnail url will not be available until then
 
-        :param ctx:             Command Context
-        :param song_info:       song info dict from youtube dl AND youtube link
+        :param ctx:             context command was invoked under: Context
+        :param song_info:       song info from youtube dl AND youtube link
                                 if link is a playlist AND youtube link
                                     list of song info dicts from youtube dl
                                 if link is from a NON-youtube source
                                     list of str: [f"{song title} {artist}", ...]
-        :param from_youtube:    if link was a youtube link
+        :param from_youtube:    if link was a youtube link: bool
+        :param queue_position:  position to insert into song queue: int
         :return:                None
         """
         if from_youtube:
@@ -144,11 +150,11 @@ class SongQueue:
                     embed=self.embeds.generate_added_queue_embed(ctx, song_list),
                     delete_after=40)
 
-    async def play_music_(self, ctx):
+    async def play_music_(self, ctx: Context) -> None:
         """
             Play songs in server's queue
 
-        :param ctx:     Command Context
+        :param ctx:     context command was invoked under: Context
         :return:        None
         """
         try:
@@ -204,16 +210,16 @@ class SongQueue:
             pass
 
     @staticmethod
-    async def spotify_to_yt_dl(ctx, link):
+    async def spotify_to_yt_dl(ctx: Context, link: str) -> Tuple[Union[dict, List[Tuple[str, Member]]], bool]:
         """
             Extract songs and artists from spotify playlist
             convert to song list
 
-        :param ctx:     Command Context
-        :param link:    link str
-        :return:        song info from youtube if its a track
-                        list of tuples if its a playlist:
-                            tuple(str : "{song title} {song artist}", str : ctx.message.author)
+        :param ctx:     context command was invoked under: Context
+        :param link:    link:  str
+        :return:        song info from youtube if its a track: dict
+                        list of tuples if its a playlist
+                            ("{song title} {song artist}": str, ctx.message.author: Member): tuple
 
         """
         parser = SpotifyParser(ctx.message.author)
@@ -221,29 +227,29 @@ class SongQueue:
         return song_info, is_track
 
     @staticmethod
-    async def soundcloud_to_yt_dl(ctx, link):
+    async def soundcloud_to_yt_dl(ctx: Context, link: str) -> Tuple[Union[dict, List[Tuple[str, Member]]], bool]:
         """
             Extract songs and artists from soundcloud playlist
             convert to song list
 
-        :param ctx:     Command Context
-        :param link:    link str
-        :return:        song info from youtube if its a track
-                        list of tuples if its a playlist:
-                            tuple(str : "{song title} {song artist}", str : ctx.message.author)
+        :param ctx:     context command was invoked under: Context
+        :param link:    link: str
+        :return:        song info from youtube if its a track: dict
+                        list of tuples if its a playlist
+                            ("{song title} {song artist}": str, ctx.message.author: Member): tuple
         """
         parser = SoundcloudParser(ctx.message.author)
         song_info, track_flag = parser.parse_link(link)
         return song_info, track_flag
 
-    async def extract_song_info(self, ctx, link):
+    async def extract_song_info(self, ctx: Context, link: str) -> Tuple[Union[dict, List[dict], List[Tuple[str, Member]]], bool]:
         """
             Directs link to proper parse method
 
             Support for Apple, SoundCloud, Spotify, and YT
 
-        :param ctx:     Command Context
-        :param link:    link str
+        :param ctx:     context command was invoked under: Context
+        :param link:    link: str
         :return:        tuple, list, flag for if info is from youtube
         """
         song_info = None
