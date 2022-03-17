@@ -239,7 +239,7 @@ class QueueView(PageView):
 
 
 class LyricsView(PageView):
-    def __init__(self, bot: Bot, ctx: Context, lyrics: list, title: str, artist: str, timeout: timeout):
+    def __init__(self, bot: Bot, ctx: Context, lyrics: list, title: str, artist: str, timeout: int):
         super().__init__(bot, ctx, timeout=timeout)
         self.ctx = ctx
         self.num_pages = 0
