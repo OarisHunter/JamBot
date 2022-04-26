@@ -6,6 +6,8 @@ import youtube_dl
 import asyncio
 import random
 
+from typing import Any, Union, List, Iterable
+from nextcord import Client, Message, Member
 from configparser import ConfigParser
 
 
@@ -14,13 +16,17 @@ class ConfigUtil:
         Config Utility functions for music bot
     """
 
-    def get_prefix(self, client, message):
+    def __init__(self):
+        self.invalid_config_message = """Config file is invalid
+        likely due to a missing starting guild id or an invalid invite link"""
+
+    def get_prefix(self, client: Client, message: Message) -> str:
         """
             Get prefixes from config.ini
 
-        :param client:      nextcord.Client object, automatically passed
-        :param message:     nextcord.Message object
-        :return:            guild prefix str from config
+        :param client:      nextcord.Client object, automatically passed: Client
+        :param message:     nextcord.Message object: Message
+        :return:            guild prefix str from config: str
         """
         server_config = self.read_config('SERVER_SETTINGS')
         # in DM messages force default prefix
@@ -29,7 +35,7 @@ class ConfigUtil:
         return server_config[str(message.guild.id)]['prefix']
 
     @staticmethod
-    def read_config(field):
+    def read_config(field: str) -> dict:
         """
             Get server options from config.ini
 
@@ -44,13 +50,13 @@ class ConfigUtil:
 
         config_dict = {}
         if field == 'BOT_SETTINGS':
-            config_dict["invite_link"] = config_field['invite_link']
-            config_dict["doom_playlist"] = config_field['doom_playlist']
+            config_dict["invite_link"] = str(config_field['invite_link'])
+            config_dict["doom_playlist"] = str(config_field['doom_playlist'])
             config_dict['ydl_opts'] = ast.literal_eval(config_field['ydl_opts'])
             config_dict['ffmpeg_opts'] = ast.literal_eval(config_field['ffmpeg_opts'])
             config_dict['embed_theme'] = int(config_field['embed_theme'], 0)
             config_dict['queue_display_length'] = int(config_field['queue_display_length'])
-            config_dict['default_prefix'] = config_field['default_prefix']
+            config_dict['default_prefix'] = str(config_field['default_prefix'])
             config_dict['view_timeout'] = int(config_field['view_timeout'])
             config_dict['broken'] = config_field.getboolean('broken')
         elif field == 'SERVER_SETTINGS':
@@ -62,14 +68,14 @@ class ConfigUtil:
         return config_dict
 
     @staticmethod
-    def write_config(mode, field, key, value=None):
+    def write_config(mode: str, field: str, key: str, value: Any = None) -> None:
         """
             Writes/Deletes key-value pair to config.ini
 
-        :param mode:    'w' = write | 'd' = delete
-        :param field:   Config.ini field
-        :param key:     Key for value in config
-        :param value:   Value for key in config
+        :param mode:    'w' = write | 'd' = delete: str
+        :param field:   Config.ini field: str
+        :param key:     Key for value in config: str
+        :param value:   Value for key in config: Any
         :return:        None
         """
         config_object = ConfigParser()
@@ -87,6 +93,33 @@ class ConfigUtil:
         with open('config.ini', 'w') as conf:
             config_object.write(conf)
 
+    def validate_config(self) -> bool:
+        """
+            Checks for a valid default guild id and invite link, set in config.ini
+
+        :return: validity of config file : bool
+        """
+        guild_id_length = 18
+
+        settings = self.read_config('BOT_SETTINGS')
+        servers = self.read_config('SERVER_SETTINGS')
+
+        # Check link
+        link_checks = ['https://discord.com', 'oauth', 'client_id', 'bot', 'applications.commands', 'permissions=8']
+        is_link_valid = True if False not in [check in settings['invite_link'] for check in link_checks] else False
+
+        # Check start guild id
+        is_guild_valid = True if len(str(list(servers.keys())[0])) == guild_id_length else False
+
+        if is_link_valid and is_guild_valid:
+            print("-*-*-*-*-*-*-*-* Tempo is Ready! *-*-*-*-*-*-*-*-*-*-")
+            print("\tRead from config!")
+        else:
+            print(self.invalid_config_message)
+            print("Bot running in restricted mode, please update config and restart")
+
+        return True if is_link_valid and is_guild_valid else False
+
 
 class Util:
     """
@@ -99,7 +132,7 @@ class Util:
         self.ydl_opts = config['ydl_opts']
 
     @staticmethod
-    def tuple_to_string(tup):
+    def tuple_to_string(tup: tuple) -> str:
         """
             Converts an indeterminate length tuple to a string
 
@@ -111,18 +144,18 @@ class Util:
         return temp.strip()
 
     @staticmethod
-    def song_info_to_tuple(song_info, author):
+    def song_info_to_tuple(song_info: dict, author: Member) -> tuple:
         """
             Extract info from song_info into song tuple
 
-        :param song_info:   dict from youtube_dl download
-        :param author:      string:ctx.message.author
-        :return:            tuple:(string:title,
-                                    string:url,
-                                    string:web_page,
-                                    string:ctx.message.author,
-                                    int:duration,
-                                    string:thumbnail)
+        :param song_info:   dict from youtube_dl download: dict
+        :param author:      ctx.message.author: Member
+        :return:            (title: str,
+                                url: str,
+                                web_page: str,
+                                ctx.message.author: Member,
+                                duration: int,
+                                thumbnail: str): tuple
         """
         title = song_info['title']
         url = song_info['formats'][0]['url']
@@ -131,7 +164,7 @@ class Util:
         thumbnail = song_info["thumbnails"][-1]['url']
         return title, url, web_page, author, duration, thumbnail
 
-    def download_from_yt(self, link):
+    def download_from_yt(self, link: str) -> Union[dict, List[dict]]:
         """
             Extracts info from yt link, adds song to server queue, plays song from queue.
 
@@ -152,15 +185,14 @@ class Util:
                 except KeyError:
                     pass
         # print(song_info)  # Debug call to see youtube_dl output
-
         return song_info
 
-    async def repopulate_queue(self, server_queue):
+    async def repopulate_queue(self, server_queue: list) -> None:
         """
             Iterates through server song queue and repopulates non-youtube sourced songs with youtube dl song info
                 NOTE: In-place modification
 
-        :param server_queue:   Server Song Queue
+        :param server_queue:   Server Song Queue: list
         :return:               None
         """
 
@@ -177,12 +209,12 @@ class Util:
             except IndexError or ValueError:
                 pass
 
-    def get_first_in_queue(self, queue):
+    def get_first_in_queue(self, queue: list) -> str:
         """
             Gets first song in the queue, download info if necessary
 
-        :param queue:   Server song queue
-        :return:        First song in queue
+        :param queue:   Server song queue: list
+        :return:        playback url of first song in queue: str
         """
         if len(queue[0]) == 2:
             song_title, message_author = queue[0]
@@ -191,12 +223,12 @@ class Util:
         return queue[0][1]
 
     @staticmethod
-    def calculate_duration(queue):
+    def calculate_duration(queue: list) -> str:
         """
             Calculate duration of Song Queue
 
-        :param queue:   Server Song Queue
-        :return:        str: "???" or Queue Duration
+        :param queue:   Server Song Queue: list
+        :return:        "???" or Queue Duration: str
         """
         duration = 0
         flag = False
@@ -215,11 +247,26 @@ class Util:
         return f'Approx. {duration.split(" ")[0]}' if flag else duration
 
     @staticmethod
-    def scrub_song_title(title):
+    def scrub_song_title(title: str) -> str:
         """
             Removes invalid characters from song title strings
 
-        :param title:   Song Title string
-        :return:        Scrubed song title string
+        :param title:   Song Title string: str
+        :return:        Scrubed song title string: str
         """
         return ''.join(c for c in title if (c.isalnum() or c == ' '))
+
+    @staticmethod
+    def display_table(data: Iterable[Iterable[Any]], labels: List[Any]) -> None:
+        """
+            Displays a formatted table to be displayed
+
+        :param data: the data to be displayed: List[List[Any]]
+        :param labels: column labels for data, will be displayed in order given: List[Any]
+        :return: None
+        """
+        length_list = [len(str(element)) for row in data for element in row]
+        column_width = max(length_list)
+        print(' ', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
+        for row in data:
+            print(' ', ' | '.join(str(element).rjust(column_width + 2) for element in row))

@@ -3,11 +3,12 @@
 import nextcord
 
 from nextcord.ext import commands, tasks
+from nextcord.ext.commands import Bot
 from lib.helpers.Utils import Util
 
 
 class Tasks(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.utilities = Util()
         self.commands = bot.get_cog("Commands")
@@ -15,7 +16,7 @@ class Tasks(commands.Cog):
         self.start_tasks()
 
     @tasks.loop(seconds=20)
-    async def update_queues(self):
+    async def update_queues(self) -> None:
         """
             Background task to update server queues that have non-YouTube sourced songs
 
@@ -32,7 +33,7 @@ class Tasks(commands.Cog):
             pass
 
     @update_queues.before_loop
-    async def wait_until_login(self):
+    async def wait_until_login(self) -> None:
         """
             Blocks tasks from beginning before bot has finished logging in
 
@@ -40,7 +41,7 @@ class Tasks(commands.Cog):
         """
         await self.bot.wait_until_ready()
 
-    def start_tasks(self):
+    def start_tasks(self) -> None:
         """
             Task start wrapper
 
@@ -49,7 +50,7 @@ class Tasks(commands.Cog):
         self.update_queues.start()
 
 
-def setup(bot):
+def setup(bot: Bot):
     # Required Function for Cog loading
     try:
         bot.add_cog(Tasks(bot))
