@@ -66,7 +66,7 @@ class Events(commands.Cog):
         # Update server queues
         self.command_cog.queues.create_server_queue()
 
-        print(f"{self.bot.user.name} added to {guild.name}!")
+        print(f"{self.bot.user.name} added to {guild.owner.name}'s guild {guild.name}")
 
         await guild.system_channel.send(embed=self.embeds.generate_new_server_embed(guild))
 
