@@ -18,6 +18,7 @@ from lib.helpers.Utils import ConfigUtil, Util
 config = ConfigUtil()
 extensions = [
     'lib.cogs.commands',
+    'lib.cogs.util_commands',
     'lib.cogs.events',
     'lib.cogs.tasks'
 ]

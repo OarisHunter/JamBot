@@ -39,6 +39,7 @@ FEATURES
     - Remove specific song in queue.
     - Loop.
     - Lyrics finder
+    - Message purge
     - Easter egg
 
 ------------------------------------------------------------------------------------------------------------------------

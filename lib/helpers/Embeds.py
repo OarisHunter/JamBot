@@ -2,7 +2,7 @@
 
 import math
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Any
 from nextcord import Embed, Guild
 from nextcord.ext.commands import Context
 from lib.helpers.Utils import ConfigUtil
@@ -317,6 +317,26 @@ class Embeds:
         embed.set_footer(text=f'Page {page + 1}/{len(lyrics_pages)}')
 
         return embed, len(lyrics_pages)
+
+    def generate_purge_embed(self, ctx: Context, user: str, messages: List[Any]):
+        """
+            Generates embed for displaying information on purged messages
+
+        :param ctx:         context command was invoked under: Context
+        :param user:        user of purged messages: str
+        :param messages:    list of messages purged: List[Any]
+        :return:            generated embed: Embed
+        """
+        embed = Embed(title="Purge", color=self.embed_theme)
+        embed.set_thumbnail(url=self.bot.user.display_avatar)
+
+        embed.add_field(name=f"{len(messages)} messages purged from user {user}",
+                        value=f"Purged from channel {ctx.channel.name}",
+                        inline=False)
+
+        embed.set_footer(text=f"Action performed by {ctx.message.author.name}", icon_url=ctx.message.author.display_avatar.url)
+
+        return embed
 
     def doom_embed(self, ctx: Context) -> Embed:
         """
