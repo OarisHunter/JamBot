@@ -46,7 +46,7 @@ FEATURES
 
 KNOWN ISSUES
 
-    - None
+    - Connection loss attempts to restart extensions that are already loaded (console clutter, no effect on functionality)
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -58,3 +58,12 @@ TO-DO LIST
     - Apple Music support. (web scraper? may not be possible without api access)
 
 ------------------------------------------------------------------------------------------------------------------------
+
+FRAMEWORKS/LIBRARIES
+
+    - nextcord
+    - youtube_dl
+    - spotipy
+    - soundcloud-lib
+    - youtube-search-python
+    - lyricsgenius
