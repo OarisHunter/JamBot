@@ -42,14 +42,17 @@ async def on_ready():
 
     # Display table of connected guild information
     labels = ['Guild ID', 'Guild Name', 'Guild Owner', 'Prefix', 'Loop']
-    info = [(guild.id,
-             guild.name,
-             guild.owner.name,
-             server_settings[str(guild.id)]['prefix'],
-             server_settings[str(guild.id)]['loop'])
-            for guild in bot.guilds]
-    print(f"\tConnected to {len(bot.guilds)} servers.")
-    Util.display_table(info, labels)
+    try:
+        info = [(guild.id,
+                 guild.name,
+                 guild.owner.name,
+                 server_settings.get(str(guild.id))['prefix'],
+                 server_settings.get(str(guild.id))['loop'])
+                for guild in bot.guilds]
+        print(f"\tConnected to {len(bot.guilds)} servers.")
+        Util.display_table(info, labels)
+    except BaseException as e:
+        print('Failed to display server table')
 
     # Check if bot is broken
     if config.read_config('BOT_SETTINGS')['broken']:

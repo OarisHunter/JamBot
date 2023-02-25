@@ -2,7 +2,7 @@
 
 import math
 import ast
-import youtube_dl
+import yt_dlp as youtube_dl
 import asyncio
 import random
 
@@ -158,10 +158,12 @@ class Util:
                                 thumbnail: str): tuple
         """
         title = song_info['title']
-        url = song_info['formats'][0]['url']
+        # url = song_info['formats'][0]['url']
+        url = song_info['url']
         web_page = song_info['webpage_url']
         duration = song_info['duration']
         thumbnail = song_info["thumbnails"][-1]['url']
+        print(title, url, web_page, author, duration, thumbnail)
         return title, url, web_page, author, duration, thumbnail
 
     def download_from_yt(self, link: str) -> Union[dict, List[dict]]:
