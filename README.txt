@@ -62,7 +62,7 @@ TO-DO LIST
 FRAMEWORKS/LIBRARIES
 
     - nextcord
-    - youtube_dl
+    - yt-dlp (formerly youtube_dl)
     - spotipy
     - soundcloud-lib
     - youtube-search-python
