@@ -19,7 +19,8 @@ config_object['BOT_SETTINGS'] = {
     "queue_display_length": 5,
     "default_prefix": "~",
     "view_timeout": 60,
-    "broken": False
+    "djRoleName": "TempoDJ",
+    "broken": False,
 }
 
 config_object['PREFIXES'] = {

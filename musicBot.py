@@ -13,6 +13,7 @@ import nextcord
 from nextcord.ext import commands
 from dotenv import load_dotenv
 from lib.helpers.Utils import ConfigUtil, Util
+from lib.helpers.Roles import RoleHandler
 
 # Create member vars
 config = ConfigUtil()
@@ -60,6 +61,9 @@ async def on_ready():
 
     for extension in extensions:
         bot.load_extension(extension)
+
+    roleHandler = RoleHandler()
+    await roleHandler.createDJRoleForServers(bot)
 
 if __name__ == "__main__":
     # Run bot

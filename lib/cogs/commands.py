@@ -16,6 +16,9 @@ from lib.helpers.SongSearch import SongSearch
 from lib.ui import views
 from lib.helpers.LyricsParser import LyricsParser
 
+# Outside of class to allow config defined role names to be read by decorators
+config_obj = ConfigUtil()
+config = config_obj.read_config('BOT_SETTINGS')
 
 class Commands(commands.Cog):
     """
@@ -29,20 +32,20 @@ class Commands(commands.Cog):
         self.embeds = Embeds(bot)
 
         # Get config values
-        self.config_obj = ConfigUtil()
-        config = self.config_obj.read_config('BOT_SETTINGS')
         self.doom_playlist = config['doom_playlist']
         self.ydl_opts = config['ydl_opts']
         self.ffmpeg_opts = config['ffmpeg_opts']
         self.default_prefix = config['default_prefix']
         self.queue_display_length = config['queue_display_length']
         self.view_timeout = config['view_timeout']
+        self.djRoleName = config['djRoleName']
         self.broken = config['broken']
 
     @commands.command(name='play',
                       help='Connects Bot to Voice',
                       aliases=['p'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
+    @commands.has_role(config['djRoleName'])
     async def play_(self, ctx: Context, *, link: str, song_info: Tuple[Any] = None, queue_position: int = None):
         """
             Command to connect to voice
@@ -101,6 +104,7 @@ class Commands(commands.Cog):
                       help="Inserts song into queue to be played next",
                       aliases=['insert'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
+    @commands.has_role(config['djRoleName'])
     async def play_next_(self, ctx: Context, *, link: str):
         """
             Calls play with a parameter to insert the song into the front of the queue
@@ -125,6 +129,7 @@ class Commands(commands.Cog):
                       help='Skips to next Song in Queue, will remove song from queue in loop mode',
                       aliases=['s'],
                       usage="[number of songs to skip]")
+    @commands.has_role(config['djRoleName'])
     async def skip_(self, ctx, num: int = 1):
         """
             Command to skip currently playing song
@@ -176,6 +181,7 @@ class Commands(commands.Cog):
     @commands.command(name='clear',
                       help='Clears the Song Queue',
                       usage='')
+    @commands.has_role(config['djRoleName'])
     async def clear_(self, ctx: Context):
         """
             Command to clear server's Queue
@@ -260,6 +266,7 @@ class Commands(commands.Cog):
     @commands.command(name='pause',
                       help='Pauses currently playing song',
                       usage='')
+    @commands.has_role(config['djRoleName'])
     async def pause_(self, ctx: Context):
         """
             Pauses music to be resumed later
@@ -293,6 +300,7 @@ class Commands(commands.Cog):
     @commands.command(name='resume',
                       help='Resumes currently playing song',
                       usage='')
+    @commands.has_role(config['djRoleName'])
     async def resume_(self, ctx: Context):
         """
             Resumes paused music
@@ -326,6 +334,7 @@ class Commands(commands.Cog):
     @commands.command(name='disconnect',
                       help='Disconnects from Voice',
                       usage='')
+    @commands.has_role(config['djRoleName'])
     async def disconnect_(self, ctx: Context):
         """
             Command to disconnect bot from voice
@@ -353,10 +362,10 @@ class Commands(commands.Cog):
             self.queues.clear_queue(ctx.guild.id)
 
             # Turn off song loop in guild settings
-            server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+            server_settings = config_obj.read_config("SERVER_SETTINGS")
             server = server_settings[str(ctx.guild.id)]
             server['loop'] = False
-            self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+            config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
     @commands.command(name='prefix',
                       help='Displays or changes prefix for this server',
@@ -423,6 +432,7 @@ class Commands(commands.Cog):
     @commands.command(name='search',
                       help=f'Searches with given keywords, displays top results',
                       usage="<keywords to search>")
+    @commands.has_role(config['djRoleName'])
     async def search(self, ctx: Context, *, keywords: str):
         """
             Searches Youtube for given keywords, displays the top 'x' results, allows user to select from list with
@@ -462,6 +472,7 @@ class Commands(commands.Cog):
     @commands.command(name='shuffle',
                       help='Shuffles the queue',
                       usage='')
+    @commands.has_role(config['djRoleName'])
     async def shuffle_(self, ctx: Context):
         """
             Shuffles the server song queue
@@ -496,6 +507,7 @@ class Commands(commands.Cog):
     @commands.command(name='remove',
                       help='Removes a specific song from the queue',
                       usage='<number of song in queue>')
+    @commands.has_role(config['djRoleName'])
     async def remove_song_(self, ctx: Context, num: int):
         """
             Removes a specific song from the queue
@@ -534,6 +546,7 @@ class Commands(commands.Cog):
     @commands.command(name='loop',
                       help='Toggles loop mode for the song queue',
                       usage='')
+    @commands.has_role(config['djRoleName'])
     async def loop_(self, ctx: Context):
         """
             Toggles the loop function of the song queue,
@@ -552,7 +565,7 @@ class Commands(commands.Cog):
                 await self.broken_(ctx)
                 return
 
-            server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+            server_settings = config_obj.read_config("SERVER_SETTINGS")
             server = server_settings[str(ctx.guild.id)]
 
             # Toggle server loop setting
@@ -563,11 +576,12 @@ class Commands(commands.Cog):
                 server['loop'] = True
 
             await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
-            self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+            config.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
     @commands.command(name='mix',
                       help='Searches for an artist and queues their songs',
                       usage='<artist name>')
+    @commands.has_role(config['djRoleName'])
     async def mix_(self, ctx: Context, *, artist_name: str):
         """
             Builds a playlist from all available songs by an artist from spotify
@@ -601,6 +615,7 @@ class Commands(commands.Cog):
                 await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
 
     @commands.command(name='doom')
+    @commands.has_role(config['djRoleName'])
     async def doom_(self, ctx: Context):
         """
             Loops music from the DOOM game indefinitely
@@ -646,10 +661,10 @@ class Commands(commands.Cog):
                     random.shuffle(song_queue)
 
                 # Toggle server loop setting
-                server_settings = self.config_obj.read_config("SERVER_SETTINGS")
+                server_settings = config_obj.read_config("SERVER_SETTINGS")
                 server = server_settings[str(ctx.guild.id)]
                 server['loop'] = True
-                self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+                config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
                 # Play song if not playing a song
                 if not vc.is_playing():
@@ -717,6 +732,8 @@ class Commands(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == 'link':
                 await ctx.channel.send("You forgot to add search keywords or a link!")
+        elif isinstance(error, commands.MissingRole):
+            await ctx.channel.send(f'User does not possess roles for command: {ctx.command}!')
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: Context, error: Exception):
@@ -741,7 +758,6 @@ class Commands(commands.Cog):
 
         # Check for original exceptions, if none are found, keep the current one passed to this function
         error = getattr(error, 'original', error)
-
         # skip ignored errors
         if isinstance(error, ignored):
             return
@@ -763,6 +779,9 @@ class Commands(commands.Cog):
 
         elif isinstance(error, (commands.BadArgument, commands.MissingRequiredArgument)):
             await ctx.channel.send(f'Incorrect arguments for command: {ctx.command}!')
+
+        elif isinstance(error, commands.MissingRole):
+            await ctx.channel.send(f'User does not possess roles for command: {ctx.command}!')
 
         else:
             print(f'Ignoring exception in command {ctx.command}')
