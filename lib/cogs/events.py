@@ -73,8 +73,13 @@ class Events(commands.Cog):
 
         print(f"{self.bot.user.name} added to {guild.owner.name}'s guild {guild.name}")
 
-        # send the welcome message to the new guild
-        await guild.system_channel.send(embed=self.embeds.generate_new_server_embed(guild))
+        # send the welcome message to the new guild (or guild owner if no other option is available)
+        if not (channel := guild.system_channel):
+            try:
+                channel = (await guild.fetch_channels())[0]
+            except IndexError:
+                channel = guild.owner.dm_channel
+        await channel.send(embed=self.embeds.generate_new_server_embed(guild))
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: Guild):
