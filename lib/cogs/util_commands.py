@@ -6,6 +6,7 @@ from nextcord.ext.commands import Context, Bot
 from lib.helpers.Utils import ConfigUtil
 from lib.ui import views
 from lib.helpers.Embeds import Embeds
+from traceback import format_exc
 
 class UtilCommands(commands.Cog):
     """
@@ -17,8 +18,8 @@ class UtilCommands(commands.Cog):
         self.embeds = Embeds(bot)
 
         self.config_obj = ConfigUtil()
-        config = self.config_obj.read_config('BOT_SETTINGS')
-        self.view_timeout = config['view_timeout']
+        self.config = self.config_obj.read_config('BOT_SETTINGS')
+        self.view_timeout = self.config['view_timeout']
 
     @commands.command(name='purge',
                       help='Cleans messages from specified user in current channel',
@@ -38,7 +39,8 @@ class UtilCommands(commands.Cog):
         try:
             await ctx.message.delete(delay=1)
         except nextcord.DiscordException:
-            pass
+            if self.config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
 
         if user != "":
             members = [(

@@ -5,6 +5,8 @@ import nextcord
 from nextcord.ext import commands, tasks
 from nextcord.ext.commands import Bot
 from lib.helpers.Utils import Util
+from lib.helpers.Utils import ConfigUtil
+from traceback import format_exc
 
 
 class Tasks(commands.Cog):
@@ -12,6 +14,8 @@ class Tasks(commands.Cog):
         self.bot = bot
         self.utilities = Util()
         self.commands = bot.get_cog("Commands")
+        self.config_obj = ConfigUtil()
+        self.config = self.config_obj.read_config('BOT_SETTINGS')
 
         self.start_tasks()
 
@@ -30,7 +34,8 @@ class Tasks(commands.Cog):
                         await self.utilities.repopulate_queue(server_queue)
                         break
         except IndexError or ValueError:
-            pass
+            if self.config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
 
     @update_queues.before_loop
     async def wait_until_login(self) -> None:

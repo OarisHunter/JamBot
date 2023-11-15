@@ -9,6 +9,7 @@ import random
 from typing import Any, Union, List, Iterable
 from nextcord import Client, Message, Member
 from configparser import ConfigParser
+from traceback import format_exc
 
 
 class ConfigUtil:
@@ -60,6 +61,7 @@ class ConfigUtil:
             config_dict['view_timeout'] = int(config_field['view_timeout'])
             config_dict['djRoleName'] = str(config_field['djRoleName'])
             config_dict['broken'] = config_field.getboolean('broken')
+            config_dict['debug_mode'] = config_field.getboolean('debug_mode')
         elif field == 'SERVER_SETTINGS':
             for i in config_field.keys():
                 temp = ast.literal_eval(config_field[i])
@@ -129,8 +131,8 @@ class Util:
 
     def __init__(self):
         config_obj = ConfigUtil()
-        config = config_obj.read_config('BOT_SETTINGS')
-        self.ydl_opts = config['ydl_opts']
+        self.config = config_obj.read_config('BOT_SETTINGS')
+        self.ydl_opts = self.config['ydl_opts']
 
     @staticmethod
     def tuple_to_string(tup: tuple) -> str:
@@ -186,7 +188,8 @@ class Util:
                         # If link is a playlist set song_info to a list of songs
                         song_info = song_info['entries']
                 except KeyError:
-                    pass
+                    if self.config['debug_mode']:
+                        print('Util.download_from_yt | {}'.format(format_exc()))
         # print(song_info)  # Debug call to see youtube_dl output
         return song_info
 
@@ -210,7 +213,8 @@ class Util:
                     song_index = server_queue.index(old_song)
                     server_queue[song_index] = new_song
             except IndexError or ValueError:
-                pass
+                if self.config['debug_mode']:
+                    print('Util.repopulate_queue | {}'.format(format_exc()))
 
     def get_first_in_queue(self, queue: list) -> str:
         """

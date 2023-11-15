@@ -10,6 +10,7 @@ from lib.helpers.Utils import Util, ConfigUtil
 from lib.helpers.Embeds import Embeds
 from lib.helpers.SpotifyParser import SpotifyParser
 from lib.helpers.SoundCloudParser import SoundcloudParser
+from traceback import format_exc
 
 
 class SongQueue:
@@ -27,9 +28,9 @@ class SongQueue:
 
         # Get config values
         self.config_obj = ConfigUtil()
-        config = self.config_obj.read_config('BOT_SETTINGS')
-        self.ffmpeg_opts = config['ffmpeg_opts']
-        self.default_prefix = config['default_prefix']
+        self.config = self.config_obj.read_config('BOT_SETTINGS')
+        self.ffmpeg_opts = self.config['ffmpeg_opts']
+        self.default_prefix = self.config['default_prefix']
 
         # Call create server queue on creation to populate object with queues for previously connected servers
         self.create_server_queue()
@@ -207,7 +208,8 @@ class SongQueue:
                 self.config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
         except nextcord.DiscordException:
-            pass
+            if self.config['debug_mode']:
+                print('SongQueue.play_music | {}'.format(format_exc()))
 
     @staticmethod
     async def spotify_to_yt_dl(ctx: Context, link: str) -> Tuple[Union[dict, List[Tuple[str, Member]]], bool]:

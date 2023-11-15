@@ -21,6 +21,7 @@ config_object['BOT_SETTINGS'] = {
     "view_timeout": 60,
     "djRoleName": "TempoDJ",
     "broken": False,
+    'debug_mode': True
 }
 
 config_object['PREFIXES'] = {

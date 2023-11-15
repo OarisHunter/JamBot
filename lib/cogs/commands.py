@@ -15,6 +15,7 @@ from lib.helpers.SongQueue import SongQueue
 from lib.helpers.SongSearch import SongSearch
 from lib.ui import views
 from lib.helpers.LyricsParser import LyricsParser
+from traceback import format_exc
 
 # Outside of class to allow config defined role names to be read by decorators
 config_obj = ConfigUtil()
@@ -64,7 +65,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -116,7 +118,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -141,7 +144,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -192,7 +196,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -218,7 +223,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -246,7 +252,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -277,7 +284,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -311,7 +319,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -345,7 +354,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -382,29 +392,29 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
                 await self.broken_(ctx)
                 return
 
-            config = ConfigUtil()
             prefix = self.utilities.tuple_to_string(prefix)
 
             # If a prefix was given, change the prefix, otherwise display the current prefix
             if prefix and len(prefix) < 2:
                 # Update config file
-                settings = config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]
+                settings = config_obj.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]
                 settings['prefix'] = str(''.join(prefix))
-                config.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), settings)
+                config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), settings)
 
                 await ctx.channel.send(f"Prefix for {ctx.guild.name} has been changed to: "
-                                       f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
+                                       f"{config_obj.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
                                        delete_after=10)
             else:
                 await ctx.channel.send(f"Prefix for {ctx.guild.name} is: "
-                                       f"{config.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
+                                       f"{config_obj.read_config('SERVER_SETTINGS')[str(ctx.guild.id)]['prefix']}",
                                        delete_after=10)
 
     @commands.command(name='invite',
@@ -420,7 +430,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -447,7 +458,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -483,7 +495,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -519,7 +532,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -558,7 +572,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -576,7 +591,7 @@ class Commands(commands.Cog):
                 server['loop'] = True
 
             await ctx.channel.send(embed=self.embeds.generate_loop_embed(ctx, server['loop']), delete_after=10)
-            config.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
+            config_obj.write_config('w', 'SERVER_SETTINGS', str(ctx.guild.id), server)
 
     @commands.command(name='mix',
                       help='Searches for an artist and queues their songs',
@@ -593,7 +608,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -626,7 +642,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -677,7 +694,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -706,7 +724,8 @@ class Commands(commands.Cog):
         try:
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
-            pass
+            if config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -775,7 +794,8 @@ class Commands(commands.Cog):
             try:
                 await ctx.channel.send(f'command: {ctx.command} can not be used in Private Messages!')
             except nextcord.HTTPException:
-                pass
+                if config['debug_mode']:
+                    print('Util.repopulate_queue | {}'.format(format_exc()))
 
         elif isinstance(error, (commands.BadArgument, commands.MissingRequiredArgument)):
             await ctx.channel.send(f'Incorrect arguments for command: {ctx.command}!')

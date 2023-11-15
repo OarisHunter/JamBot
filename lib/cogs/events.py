@@ -7,6 +7,7 @@ from nextcord.ext import commands
 from nextcord.ext.commands import Bot
 from lib.helpers.Utils import Util, ConfigUtil
 from lib.helpers.Embeds import Embeds
+from traceback import format_exc
 
 
 class Events(commands.Cog):
@@ -20,6 +21,8 @@ class Events(commands.Cog):
         self.embeds = Embeds(bot)
         self.utilities = Util()
         self.config_obj = ConfigUtil()
+        self.config_obj = ConfigUtil()
+        self.config = self.config_obj.read_config('BOT_SETTINGS')
         self.command_cog = bot.get_cog("Commands")
 
     @commands.Cog.listener()
@@ -54,7 +57,8 @@ class Events(commands.Cog):
                     self.config_obj.write_config('w', 'SERVER_SETTINGS', str(member.guild.id), server)
 
         except AttributeError:
-            pass
+            if self.config['debug_mode']:
+                print('Util.repopulate_queue | {}'.format(format_exc()))
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: Guild):
