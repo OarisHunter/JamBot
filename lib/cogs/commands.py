@@ -630,7 +630,9 @@ class Commands(commands.Cog):
                 song_info = search.get_artist_all_tracks(artist_uri)
                 await ctx.invoke(self.bot.get_command('play'), link="", song_info=song_info)
 
-    @commands.command(name='doom')
+    @commands.command(name='doom',
+                      help='Rip and Tear, until it is done...',
+                      usage='')
     @commands.has_role(config['djRoleName'])
     async def doom_(self, ctx: Context):
         """
