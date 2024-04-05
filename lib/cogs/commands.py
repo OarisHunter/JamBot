@@ -66,7 +66,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.play | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -84,7 +84,7 @@ class Commands(commands.Cog):
                 try:
                     # Connect to channel of author
                     vc = await ctx.author.voice.channel.connect()
-                except nextcord.DiscordException:
+                except nextcord.ClientException:
                     # Catch error if already connected
                     vc = ctx.guild.voice_client
             else:
@@ -119,7 +119,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.play_next | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -145,7 +145,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.skip | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -197,7 +197,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.clear | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -224,7 +224,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.queue | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -253,7 +253,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.now_playing | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -285,7 +285,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.pause | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -320,7 +320,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.resume | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -355,7 +355,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.disconnect | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -393,7 +393,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.prefix | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -431,7 +431,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.invite | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -459,7 +459,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.search | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -496,7 +496,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.shuffle | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -533,7 +533,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.remove_song | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -573,7 +573,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.loop | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -609,7 +609,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.mix | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -643,7 +643,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.doom | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -695,7 +695,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.lyrics | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -725,7 +725,7 @@ class Commands(commands.Cog):
             await ctx.message.delete(delay=5)
         except nextcord.DiscordException:
             if config['debug_mode']:
-                print('Util.repopulate_queue | {}'.format(format_exc()))
+                print('Commands.help | {}'.format(format_exc()))
         else:
             # Skip command if bot is broken
             if self.broken:
@@ -753,6 +753,9 @@ class Commands(commands.Cog):
                 await ctx.channel.send("You forgot to add search keywords or a link!")
         elif isinstance(error, commands.MissingRole):
             await ctx.channel.send(f'User does not possess roles for command: {ctx.command}!')
+        else:
+            print(f'Ignoring exception in command {ctx.command}')
+            traceback.print_exception(type(error), error, error.__traceback__)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: Context, error: Exception):
@@ -795,7 +798,7 @@ class Commands(commands.Cog):
                 await ctx.channel.send(f'command: {ctx.command} can not be used in Private Messages!')
             except nextcord.HTTPException:
                 if config['debug_mode']:
-                    print('Util.repopulate_queue | {}'.format(format_exc()))
+                    print('Commands.error | {}'.format(format_exc()))
 
         elif isinstance(error, (commands.BadArgument, commands.MissingRequiredArgument)):
             await ctx.channel.send(f'Incorrect arguments for command: {ctx.command}!')
