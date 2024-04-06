@@ -10,6 +10,7 @@ Music Bot
 import os
 import nextcord
 
+from traceback import format_exc
 from nextcord.ext import commands
 from dotenv import load_dotenv
 from lib.helpers.Utils import ConfigUtil, Util
@@ -53,6 +54,8 @@ async def on_ready():
         print(f"\tConnected to {len(bot.guilds)} servers.")
         Util.display_table(info, labels)
     except BaseException as e:
+        if config.read_config('BOT_SETTINGS')['debug_mode']:
+            print('musicBot.on_ready | {}'.format(format_exc()))
         print('Failed to display server table')
 
     # Check if bot is broken

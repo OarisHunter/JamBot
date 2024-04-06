@@ -272,8 +272,25 @@ class Util:
         :param labels: column labels for data, will be displayed in order given: List[Any]
         :return: None
         """
-        length_list = [len(str(element)) for row in data for element in row]
-        column_width = max(length_list)
-        print(' ', '---'.join(label[:column_width - 1].rjust(column_width + 2, '-') for label in labels))
+        column_widths = [max(map(len, list(map(str, col)) + [labels[i]])) + 1 for i, col in enumerate(zip(*data))]
+        print(' ', '---'.join(label[:column_widths[i] - 1].rjust(column_widths[i], '-')
+                              for i, label in enumerate(labels)))
         for row in data:
-            print(' ', ' | '.join(str(element).rjust(column_width + 2) for element in row))
+            print(' ', ' | '.join(str(element).rjust(column_widths[i]) for i, element in enumerate(row)))
+
+
+if __name__ == '__main__':
+    data = [(138622532248010752, 'House of Tots', 'oarishunter', '!', False),
+     (148647867588935682, 'Chimp Central Station', 'trip7106', '~', False),
+     (393178185631662121, 'TKE', 'higs369', '!', False),
+     (703375435278450708, 'Moms Basement', 'theorussel', '!', False),
+     (776839514643628032, "lil' Cream", 'creamiers', '~', False),
+     (861611800336531456, 'Daddy’s Girls', 'dominantdaddy5219', '~', False),
+     (886120224267575317, "Cream's Catgirls", 'creamiers', '~', False),
+     (894627296118468649, 'Nerd Lounge', 'slamminsamwich', '~', False),
+     (951664798444191798, 'Viberz', 'creamiers', '~', False),
+     (1001944063664197752, 'Sea of Siege', 'daveycrasterbaby', '~', False),
+     (1052106711713988639, 'Teke freaks', 'nf914', '~', False)]
+    labels = ['Guild ID', 'Guild Name', 'Guild Owner', 'Prefix', 'Loop']
+
+    Util.display_table(data, labels)
