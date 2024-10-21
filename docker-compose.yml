@@ -1,0 +1,23 @@
+services:
+  discord-bot:
+    container_name: 'jambot-main'
+    hostname: 'discord-bot'
+    image: 'python:3.12'
+    volumes:
+      - './:/app'
+    working_dir: /app
+    env_file:
+      - .env
+    restart: no
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    entrypoint: ["/bin/sh","-c"]
+    command:
+      - |
+        apt-get -y update
+        apt-get -y upgrade
+        apt-get install -y --no-install-recommends ffmpeg
+        pip install --root-user-action ignore -r requirements.txt
+        python -u musicBot.py
