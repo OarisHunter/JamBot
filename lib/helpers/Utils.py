@@ -1,7 +1,6 @@
 # Utils.py
 
 import math
-import ast
 import yt_dlp as youtube_dl
 import asyncio
 import random
