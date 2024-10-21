@@ -1,0 +1,9 @@
+{
+  "DBConnection": {
+    "host": "192.168.1.29",
+    "port": 5432,
+    "database": "jam-bot",
+    "user": "discord-bot",
+    "password": "password!"
+  }
+}

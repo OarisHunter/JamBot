@@ -39,14 +39,14 @@ class Commands(commands.Cog):
         self.default_prefix = config['default_prefix']
         self.queue_display_length = config['queue_display_length']
         self.view_timeout = config['view_timeout']
-        self.djRoleName = config['djRoleName']
+        self.dj_role_name = config['dj_role_name']
         self.broken = config['broken']
 
     @commands.command(name='play',
                       help='Connects Bot to Voice',
                       aliases=['p'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def play_(self, ctx: Context, *, link: str, song_info: Tuple[Any] = None, queue_position: int = None):
         """
             Command to connect to voice
@@ -106,7 +106,7 @@ class Commands(commands.Cog):
                       help="Inserts song into queue to be played next",
                       aliases=['insert'],
                       usage="<youtube/spotify/soundcloud song/playlist url, or keywords to search youtube>")
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def play_next_(self, ctx: Context, *, link: str):
         """
             Calls play with a parameter to insert the song into the front of the queue
@@ -132,7 +132,7 @@ class Commands(commands.Cog):
                       help='Skips to next Song in Queue, will remove song from queue in loop mode',
                       aliases=['s'],
                       usage="[number of songs to skip]")
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def skip_(self, ctx, num: int = 1):
         """
             Command to skip currently playing song
@@ -185,7 +185,7 @@ class Commands(commands.Cog):
     @commands.command(name='clear',
                       help='Clears the Song Queue',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def clear_(self, ctx: Context):
         """
             Command to clear server's Queue
@@ -273,7 +273,7 @@ class Commands(commands.Cog):
     @commands.command(name='pause',
                       help='Pauses currently playing song',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def pause_(self, ctx: Context):
         """
             Pauses music to be resumed later
@@ -308,7 +308,7 @@ class Commands(commands.Cog):
     @commands.command(name='resume',
                       help='Resumes currently playing song',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def resume_(self, ctx: Context):
         """
             Resumes paused music
@@ -343,7 +343,7 @@ class Commands(commands.Cog):
     @commands.command(name='disconnect',
                       help='Disconnects from Voice',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def disconnect_(self, ctx: Context):
         """
             Command to disconnect bot from voice
@@ -443,7 +443,7 @@ class Commands(commands.Cog):
     @commands.command(name='search',
                       help=f'Searches with given keywords, displays top results',
                       usage="<keywords to search>")
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def search(self, ctx: Context, *, keywords: str):
         """
             Searches Youtube for given keywords, displays the top 'x' results, allows user to select from list with
@@ -484,7 +484,7 @@ class Commands(commands.Cog):
     @commands.command(name='shuffle',
                       help='Shuffles the queue',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def shuffle_(self, ctx: Context):
         """
             Shuffles the server song queue
@@ -520,7 +520,7 @@ class Commands(commands.Cog):
     @commands.command(name='remove',
                       help='Removes a specific song from the queue',
                       usage='<number of song in queue>')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def remove_song_(self, ctx: Context, num: int):
         """
             Removes a specific song from the queue
@@ -560,7 +560,7 @@ class Commands(commands.Cog):
     @commands.command(name='loop',
                       help='Toggles loop mode for the song queue',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def loop_(self, ctx: Context):
         """
             Toggles the loop function of the song queue,
@@ -596,7 +596,7 @@ class Commands(commands.Cog):
     @commands.command(name='mix',
                       help='Searches for an artist and queues their songs',
                       usage='<artist name>')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def mix_(self, ctx: Context, *, artist_name: str):
         """
             Builds a playlist from all available songs by an artist from spotify
@@ -633,7 +633,7 @@ class Commands(commands.Cog):
     @commands.command(name='doom',
                       help='Rip and Tear, until it is done...',
                       usage='')
-    @commands.has_role(config['djRoleName'])
+    @commands.has_role(config['dj_role_name'])
     async def doom_(self, ctx: Context):
         """
             Loops music from the DOOM game indefinitely

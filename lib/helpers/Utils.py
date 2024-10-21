@@ -6,9 +6,10 @@ import yt_dlp as youtube_dl
 import asyncio
 import random
 
+from rebel import Database, PgsqlDriver
+from json import load
 from typing import Any, Union, List, Iterable
 from nextcord import Client, Message, Member
-from configparser import ConfigParser
 from traceback import format_exc
 
 
@@ -21,6 +22,23 @@ class ConfigUtil:
         self.invalid_config_message = """Config file is invalid
         likely due to a missing starting guild id or an invalid invite link"""
 
+    @staticmethod
+    def db_connect():
+        driver = None
+        with open('app-settings.json') as f:
+            json_data = load(f)
+            if json_data.get('DBConnection'):
+                driver = PgsqlDriver(
+                    host=json_data['DBConnection']['host'],
+                    port=json_data['DBConnection']['port'],
+                    database=json_data['DBConnection']['database'],
+                    user=json_data['DBConnection']['user'],
+                    password=json_data['DBConnection']['password']
+                )
+        if driver is None:
+            print("Failed to connect to DB")
+        return Database(driver)
+
     def get_prefix(self, client: Client, message: Message) -> str:
         """
             Get prefixes from config.ini
@@ -31,47 +49,58 @@ class ConfigUtil:
         """
         server_config = self.read_config('SERVER_SETTINGS')
         # in DM messages force default prefix
-        if not message.guild:
+        if message is None or not message.guild:
             return self.read_config('BOT_SETTINGS')['default_prefix']
         return server_config[str(message.guild.id)]['prefix']
 
     @staticmethod
     def read_config(field: str) -> dict:
         """
-            Get server options from config.ini
+            Collects DB information based on "field" - outdated concept from config.ini
 
-            Convert to proper types here (default is str)
-
-        :param field:   config.ini field to read and return values from
+        :param field:   config.ini field to read and return values from (valid are 'BOT_SETTINGS' & 'SERVER_SETTINGS'
         :return:        Tuple with config values
         """
-        config_object = ConfigParser()
-        config_object.read("config.ini")
-        config_field = config_object[field]
+        db = ConfigUtil.db_connect()
+        if db is None:
+            return {}
 
-        config_dict = {}
         if field == 'BOT_SETTINGS':
-            config_dict["invite_link"] = str(config_field['invite_link'])
-            config_dict["doom_playlist"] = str(config_field['doom_playlist'])
-            config_dict['ydl_opts'] = ast.literal_eval(config_field['ydl_opts'])
-            config_dict['ffmpeg_opts'] = ast.literal_eval(config_field['ffmpeg_opts'])
-            config_dict['embed_theme'] = int(config_field['embed_theme'], 0)
-            config_dict['queue_display_length'] = int(config_field['queue_display_length'])
-            config_dict['default_prefix'] = str(config_field['default_prefix'])
-            config_dict['view_timeout'] = int(config_field['view_timeout'])
-            config_dict['djRoleName'] = str(config_field['djRoleName'])
-            config_dict['broken'] = config_field.getboolean('broken')
-            config_dict['debug_mode'] = config_field.getboolean('debug_mode')
+            return db.query_one("""
+                SELECT 
+                    invite_link,
+                    doom_playlist,
+                    ydl_opts,
+                    ffmpeg_opts,
+                    embed_theme,
+                    queue_display_length,
+                    default_prefix,
+                    view_timeout,
+                    dj_role_name,
+                    broken,
+                    debug_mode
+                FROM public."primary-config"
+                WHERE active = true
+            """)
         elif field == 'SERVER_SETTINGS':
-            for i in config_field.keys():
-                temp = ast.literal_eval(config_field[i])
-                config_dict[i] = {'prefix': temp['prefix'], 'loop': bool(temp['loop'])}
+            q_data = db.query("""
+                SELECT
+                    guild_id,
+                    prefix,
+                    loop
+                FROM public."server-settings"
+            """)
+            return {i['guild_id']: {
+                "prefix": i['prefix'],
+                "loop": i['loop']
+            } for i in q_data}
         else:
-            print("Bad field passed to read_config")
-        return config_dict
+            print("invalid table queried!")
+
+        return {}
 
     @staticmethod
-    def write_config(mode: str, field: str, key: str, value: Any = None) -> None:
+    def write_config(mode: str, field: str, key: str, value: Any = None) -> bool:
         """
             Writes/Deletes key-value pair to config.ini
 
@@ -79,22 +108,27 @@ class ConfigUtil:
         :param field:   Config.ini field: str
         :param key:     Key for value in config: str
         :param value:   Value for key in config: Any
-        :return:        None
+        :return:        success: bool
         """
-        config_object = ConfigParser()
-        config_object.read("config.ini")
-        config_field = config_object[str(field)]
+        db = ConfigUtil.db_connect()
+        if db is None:
+            return False
 
         if mode == 'w':
-            config_field[str(key)] = str(value)
+            db.execute("""
+                INSERT INTO public."server-settings"(
+                    guild_id, prefix, loop)
+                VALUES (?, ?, ?);
+            """, key, value.get('prefix'), value.get('loop'))
         elif mode == 'd':
-            config_field.pop(str(key))
+            db.execute("""
+                DELETE FROM public."server-settings"
+                    WHERE guild_id = ?;
+            """, key)
         else:
             print('invalid config write mode')
-
-        # Update config file
-        with open('config.ini', 'w') as conf:
-            config_object.write(conf)
+            return False
+        return True
 
     def validate_config(self) -> bool:
         """
@@ -280,17 +314,27 @@ class Util:
 
 
 if __name__ == '__main__':
-    data = [(138622532248010752, 'House of Tots', 'oarishunter', '!', False),
-     (148647867588935682, 'Chimp Central Station', 'trip7106', '~', False),
-     (393178185631662121, 'TKE', 'higs369', '!', False),
-     (703375435278450708, 'Moms Basement', 'theorussel', '!', False),
-     (776839514643628032, "lil' Cream", 'creamiers', '~', False),
-     (861611800336531456, 'Daddy’s Girls', 'dominantdaddy5219', '~', False),
-     (886120224267575317, "Cream's Catgirls", 'creamiers', '~', False),
-     (894627296118468649, 'Nerd Lounge', 'slamminsamwich', '~', False),
-     (951664798444191798, 'Viberz', 'creamiers', '~', False),
-     (1001944063664197752, 'Sea of Siege', 'daveycrasterbaby', '~', False),
-     (1052106711713988639, 'Teke freaks', 'nf914', '~', False)]
-    labels = ['Guild ID', 'Guild Name', 'Guild Owner', 'Prefix', 'Loop']
+    data = ConfigUtil().read_config("BOT_SETTINGS")
+    print(data)
 
+    data = ConfigUtil().read_config("SERVER_SETTINGS")
+    print(data)
+
+    data = ConfigUtil().get_prefix(None, None)
+    print(data)
+
+    print(f"\nConfig is valid - {ConfigUtil().validate_config()}\n")
+
+    data = [(138622532248010752, 'House of Tots', 'oarishunter', '!', False),
+            (148647867588935682, 'Chimp Central Station', 'trip7106', '~', False),
+            (393178185631662121, 'TKE', 'higs369', '!', False),
+            (703375435278450708, 'Moms Basement', 'theorussel', '!', False),
+            (776839514643628032, "lil' Cream", 'creamiers', '~', False),
+            (861611800336531456, 'Daddy’s Girls', 'dominantdaddy5219', '~', False),
+            (886120224267575317, "Cream's Catgirls", 'creamiers', '~', False),
+            (894627296118468649, 'Nerd Lounge', 'slamminsamwich', '~', False),
+            (951664798444191798, 'Viberz', 'creamiers', '~', False),
+            (1001944063664197752, 'Sea of Siege', 'daveycrasterbaby', '~', False),
+            (1052106711713988639, 'Teke freaks', 'nf914', '~', False)]
+    labels = ['Guild ID', 'Guild Name', 'Guild Owner', 'Prefix', 'Loop']
     Util.display_table(data, labels)

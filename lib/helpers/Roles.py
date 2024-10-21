@@ -18,7 +18,7 @@ class RoleHandler:
         :return:        None
         """
         config = ConfigUtil().read_config('BOT_SETTINGS')
-        roleName = config['djRoleName']
+        roleName = config['dj_role_name']
         for guild in bot.guilds:
             # Skip guilds that have the role
             if roleName in (role.name for role in guild.roles):

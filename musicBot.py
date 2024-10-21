@@ -68,6 +68,7 @@ async def on_ready():
     roleHandler = RoleHandler()
     await roleHandler.createDJRoleForServers(bot)
 
+
 if __name__ == "__main__":
     # Run bot
     bot.run(TOKEN, reconnect=True)

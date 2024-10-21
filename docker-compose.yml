@@ -11,6 +11,9 @@ services:
       - SPOTIFY_CID=${SPOTIFY_CID}
       - SPOTIFY_SECRET=${SPOTIFY_SECRET}
       - LYRICS_GENIUS_TOKEN=${LYRICS_GENIUS_TOKEN}
+    env_file:
+      - path: .env
+        required: false
     restart: no
     deploy:
       resources:
@@ -23,4 +26,4 @@ services:
         apt-get -y upgrade
         apt-get install -y --no-install-recommends ffmpeg
         pip install --root-user-action ignore -r requirements.txt
-        python musicBot.py
+        python -u musicBot.py

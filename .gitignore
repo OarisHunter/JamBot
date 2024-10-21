@@ -1,5 +1,6 @@
-/.env
 /config.ini
 /log.txt
 /cookies.txt
 /.cache
+/.env
+/lib/helpers/app-settings.json
