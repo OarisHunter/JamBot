@@ -1,10 +1,8 @@
 # Roles.py
 
-from typing import List, Tuple, Union, Any
 from nextcord import Colour
-from nextcord.ext.commands import Context, Bot
+from nextcord.ext.commands import Bot
 from lib.helpers.Utils import ConfigUtil
-from lib.helpers.Utils import Util
 
 class RoleHandler:
     """
